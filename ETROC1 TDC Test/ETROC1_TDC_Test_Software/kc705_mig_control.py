@@ -76,8 +76,9 @@ def iic_write(mode, slave_addr, wr, reg_addr, data):
     val = mode << 24 | slave_addr << 17 | wr << 16 | reg_addr << 8 | data
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
-    time.sleep(0.1)
+    time.sleep(0.01)
     cmd_interpret.write_pulse_reg(0x0001)           # reset ddr3 data fifo
+    time.sleep(0.01)
     # print(hex(val))
 #--------------------------------------------------------------------------#
 ## IIC read slave device
@@ -116,18 +117,17 @@ def data_plot(data):
 #--------------------------------------------------------------------------#
 ## main function
 def main():
+    reg_addr = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,\
+                0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b]
+    for j in range(len(reg_addr)):
+        iic_write(1, 0x22, 0, reg_addr[j], j)
+    print(len(reg_addr))
+    for i in range(len(reg_addr)):
+        print("reg addr %s:"%str(hex(reg_addr[i])), hex(iic_read(0, 0x22, 1, reg_addr[i])))
     # data_out = []
     # data_out = test_ddr3()
     # print(data_out)
     # data_plot(data_out)
-
-    reg_addr = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14,\
-                0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b]
-    # for j in range(len(reg_addr)):
-    #     iic_write(1, 0x22, 0, reg_addr[j], 0xaa)
-    # print(len(reg_addr))
-    for i in range(len(reg_addr)):
-        print("reg addr %s:"%str(hex(reg_addr[i])), hex(iic_read(0, 0x22, 1, reg_addr[i])))
     print("Ok!")
 #--------------------------------------------------------------------------#
 ## if statement
