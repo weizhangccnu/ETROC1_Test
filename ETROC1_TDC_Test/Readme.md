@@ -12,10 +12,10 @@
 ![Configuration mode](https://github.com/weizhangccnu/Python_Script/blob/master/ETROC1_TDC_Test_Software/Img/FPGA_Configuration_mode.png)
   - Firmware was synthesized and implemented on ***Vivado 2016.2***. The `kc705_mig.bit` or `kc705_mig.bit` file is downlaoded into KC705 EVB via Vivado 2016.2 IDE. 
   - The FPGA socket address is 192.168.2.x, The x is configurable via switch (DIP switch **SW11** positions 1 and 2 control the value of `x`, the positions 1 and 2 are **ON**, `x=3`, the position 1 is **ON** and the position 2 is **OFF**, `x=1`, and so forth) and its value ranges from 0 to 3 and the port number is fixed to 1024. [Schematic of KC705 EVB](https://www.xilinx.com/support/documentation/boards_and_kits/kc705_Schematic_xtp132_rev1_1.pdf)
-  ```verilog
-	hostname = '192.168.2.3'			#FPGA IP address
-	port = 1024					#port number
-  ```
+```verilog
+hostname = '192.168.2.3'			#FPGA IP address
+port = 1024					#port number
+```
   - Verify Ethernet communication
     - Before executing ping command at docs command line, we should make sure that the Ethernet interface of KC705 EVB was connected to PC RJ45 interface with a **1000M** ethernet cable. 
     - Open Windows docs command line and execute command `ping 192.168.2.3`. The below figure shows the connected and disconnected outputs after executing `ping 192.168.2.3` command.
