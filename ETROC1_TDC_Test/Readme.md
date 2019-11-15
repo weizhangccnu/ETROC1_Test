@@ -16,6 +16,8 @@
 	hostname = '192.168.2.3'			#FPGA IP address
 	port = 1024					#port number
   ```
+  - Verify Ethernet communication
+    - before executing ping command at docs command line, we should make sure that the FPGA Ethernet interface was connect to PC RJ45 interface with a 
 
 ## 3. Test Software (mainly python scripts)
 
