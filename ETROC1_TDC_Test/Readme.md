@@ -10,7 +10,7 @@
 ![KC705 EVB](https://github.com/weizhangccnu/ETROC1_Test/blob/master/ETROC1_TDC_Test/Img/KC705_EVB.png) 
   - Configure KC705 EVB download mode The DIP switch **SW13** position 3,4, and 5 control determine the configuration mode and the configuration mode is used at power-up or when the PROG pushbutton is pressed. The SW13 should be set as shown the below figure.
 ![Configuration mode](https://github.com/weizhangccnu/Python_Script/blob/master/ETROC1_TDC_Test_Software/Img/FPGA_Configuration_mode.png)
-  -Download `kc705_mig.bit` or `kc705_mig.bit` file into KC705 EVB.
+  - Download `kc705_mig.bit` or `kc705_mig.bit` file into KC705 EVB.
 
 ## 3. Test Software (mainly python scripts)
 
