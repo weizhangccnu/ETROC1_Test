@@ -17,7 +17,8 @@
 	port = 1024					#port number
   ```
   - Verify Ethernet communication
-    - before executing ping command at docs command line, we should make sure that the Ethernet interface of KC705 EVB was connected to PC RJ45 interface with a **1000M** ethernet cable. 
+    - Before executing ping command at docs command line, we should make sure that the Ethernet interface of KC705 EVB was connected to PC RJ45 interface with a **1000M** ethernet cable. 
+    - Open Windows docs command line and execute command `ping 192.168.2.3`
 
 ## 3. Test Software (mainly python scripts)
 
