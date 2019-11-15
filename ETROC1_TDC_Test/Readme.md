@@ -21,7 +21,7 @@ port = 1024					#port number
     - Open Windows docs command line and execute command `ping 192.168.2.3`. The below figure shows the connected and disconnected outputs after executing `ping 192.168.2.3` command.
 ![Ping Command](https://github.com/weizhangccnu/ETROC1_Test/blob/master/ETROC1_TDC_Test/Img/Ping_Command.PNG)
   - The GTX transceiver needs a pair of differential clock that will be provided by Si5338 EVB **CLK0A/CLK0B**. The GTX transceiver reference clock input locates on **J15/J16** SMA connectors as reference clock whose frequency is accurate **160 MHz**. The GTX transceiver isn't sensitive to the ploarity of reference clock, so you needn't take care of the ploarity when you can connect **J15/J16** SMA connectors with **CLK0A/CLK0B** SMA connectors via coxial cables.
-  - The I2C SCL and SDA interface are assigned on Pin 18 and 20 of the KC705 EVB J46 connector. The I2C infterface mapping is shown as below figure.
+  - The I2C SCL and SDA interface are assigned on **Pin 18 and 20** of the KC705 EVB **J46** connector. The I2C infterface mapping is shown as below figure.
 ![I2C interface mapping](https://github.com/weizhangccnu/ETROC1_Test/blob/master/ETROC1_TDC_Test/Img/I2C_Interface_Mapping.png)
 
 ## 3. Test Software (mainly python scripts)
