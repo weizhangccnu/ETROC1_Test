@@ -27,5 +27,5 @@ port = 1024					#port number
 ## 3. Test Software (mainly python scripts)
   - There are two python files located on ETROC1_TDC_Test_Software directory and named *command_interpret.py* and *kc705_mig_control.py*, respectively.
     - The **command_interpret.py** file maily includes a class for socket communication.
-    - The **kc705_mig_control.py** file includes all kinds of functions such as I2C write/read, DDR3 data store and fetch data, Ethernet communication and so on.
+    - The **kc705_mig_control.py** file includes all kinds of functions such as I2C write/read, DDR3 data store and fetch, Ethernet communication and so on.
 
