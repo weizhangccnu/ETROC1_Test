@@ -17,7 +17,7 @@
 	port = 1024					#port number
   ```
   - Verify Ethernet communication
-    - before executing ping command at docs command line, we should make sure that the FPGA Ethernet interface was connect to PC RJ45 interface with a 
+    - before executing ping command at docs command line, we should make sure that the Ethernet interface of KC705 EVB was connected to PC RJ45 interface with a **1000M** ethernet cable. 
 
 ## 3. Test Software (mainly python scripts)
 
