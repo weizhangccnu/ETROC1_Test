@@ -33,6 +33,6 @@ port = 1024					#port number
   - Before you execute the list one python scripts, you should make sure that all the modules imported at the begin of each python file have already been installed. Otherwise, you have to install all used modules with the command of `pip install modulename`.
 
 ## 4. Configure Si5338 EVB
-  - [User's guide of Si5338](https://www.silabs.com/documents/public/user-guides/Si5338-EVB.pdf)
+  - [User's guide of Si5338 EVB](https://www.silabs.com/documents/public/user-guides/Si5338-EVB.pdf)
   - The Si5338 EVB is configured by ClockBuilder Pro v.2.37.0.1 [ClockBuilder Pro download link](https://www.silabs.com/products/development-tools/software/clockbuilder-pro-software)
 
