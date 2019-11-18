@@ -30,4 +30,5 @@ port = 1024					#port number
     - The **kc705_mig_control.py** file includes all kinds of functions such as I2C write/read, DDR3 data store and fetch, Ethernet communication and so on.
   - Python version: **Python 3.7.5** is the python version that we used now.
   - **Atom editor** is the python script execution environment at SMU.
+  - Before you execute the list one python scripts, you should make sure that all the modules imported at the begin of each python file have already been installed. Otherwise, you have to install all used modules with the command of `pip install modulename`.
 
