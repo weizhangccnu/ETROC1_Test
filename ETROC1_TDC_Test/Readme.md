@@ -35,4 +35,5 @@ port = 1024					#port number
 ## 4. Configure Si5338 EVB
   - [User's guide of Si5338 EVB](https://www.silabs.com/documents/public/user-guides/Si5338-EVB.pdf)
   - The Si5338 EVB is configured by ClockBuilder Pro v.2.37.0.1 [ClockBuilder Pro download link](https://www.silabs.com/products/development-tools/software/clockbuilder-pro-software)
+  - The Si5338 EVB Configuration file link: [Si5338 EVB Configuration file](https://github.com/weizhangccnu/ETROC1_Test/tree/master/ETROC1_TDC_Test/Si5338_EVB_Document)
 
