@@ -122,14 +122,23 @@ class ETROC1_TDCReg(object):
     _defaultRegMap = {
         'Dataout_disCMLDriver_BIAS'     :   0,
         'Clk40Mout_disCMLDriver_BIAS'   :   0,
-        'tdc_offset'                    :   0x0,
-        'tdc_enable'                    :   1,
-        'tdc_level'                     :   0x1,
-        'tdc_testMode'                  :   0,
-        'tdc_selRawCode'                :   0,
-        'tdc_resetn'                    :   1,
-        'tdc_polaritySel'               :   1,
-        'tdc_autoReset'                 :   0
+        'TDC_offset'                    :   0x0,
+        'TDC_enable'                    :   1,
+        'TDC_level'                     :   0x1,
+        'TDC_testMode'                  :   0,
+        'TDC_selRawCode'                :   0,
+        'TDC_resetn'                    :   1,
+        'TDC_polaritySel'               :   1,
+        'TDC_autoReset'                 :   0,
+        'Clk40Mout_AmplSel'             :   1,
+        'TDC_enableMon'                 :   0,
+        'TDC_timeStampMode'             :   1,
+        'Dataout_AmplSel'               :   1,
+        'DMRO_testmode'                 :   0,
+        'DMRO_enable'                   :   1,
+        'DMRO_reverse'                  :   0,
+        'DMRO_resetn'                   :   1,
+        'DMRO_revclk'                   :   0
     }
     ## @var register map local to the class
     _regMap = {}
@@ -137,30 +146,53 @@ class ETROC1_TDCReg(object):
     def __init__(self):
         self._regMap = copy.deepcopy(self._defaultRegMap)
 
-    def set_Dataout_disCMLDriver_BIAS(self, ONOFF):                             # ONOFF = 0, CML driver bias enable, ONOFF = 1 CML driver bias disable
-        self._regMap['Dataout_disCMLDriver_BIAS'] = 0x1 & ONOFF
+    def set_Dataout_disCMLDriver_BIAS(self, val):                               # val = 0, CML driver bias enable, val = 1 CML driver bias disable
+        self._regMap['Dataout_disCMLDriver_BIAS'] = 0x1 & val
 
-    def set_Clk40Mout_disCMLDriver_BIAS(self, ONOFF):
-        self._regMap['Clk40Mout_disCMLDriver_BIAS'] = 0x1 & ONOFF               # ONOFF = 0, CML driver bias enable, ONOFF = 1 CML driver bias disable
+    def set_Clk40Mout_disCMLDriver_BIAS(self, val):                             # val = 0, CML driver bias enable, val = 1 CML driver bias disable
+        self._regMap['Clk40Mout_disCMLDriver_BIAS'] = 0x1 & val
 
-    def set_tdc_offset(self, val):
-        self._regMap['tdc_offset'] = 0x7f & val                                 # measurement window offset 0-127
+    def set_tdc_offset(self, val):                                              # measurement window offset 0-127
+        self._regMap['TDC_offset'] = 0x7f & val
 
-    def set_tdc_enable(self, ONOFF):
-        self._regMap['tdc_enable'] = 0x1 & ONOFF                                # ONOFF = 0, disable TDC controller, ONOFF = 1 enable TDC controller
+    def set_tdc_enable(self, val):                                              # ONOFF = 0, disable TDC controller, ONOFF = 1 enable TDC controller
+        self._regMap['TDC_enable'] = 0x1 & val
 
-    def set_tdc_level(self, val):
-        self._regMap['tdc_level'] = 0x7 & val                                   # tdc encode bubble tolerance intensity, 1, 2, 3
+    def set_tdc_level(self, val):                                               # TDC encode bubble tolerance intensity, 1, 2, 3
+        self._regMap['TDC_level'] = 0x7 & val
 
-    def set_tdc_testMode(self, val):                                            # tdc testMode 1: TDC works on testMode, 0: TDC works on normal mode
-        self._regMap['tdc_testMode'] = 0x1 & val
+    def set_tdc_testMode(self, val):                                            # TDC testMode 1: TDC works on testMode, 0: TDC works on normal mode
+        self._regMap['TDC_testMode'] = 0x1 & val
 
+    def set_tdc_selRawCode(self, val):                                          # always keep "0"
+        self._regMap['TDC_selRawCode']  = 0x1 & val
+
+    def set_tdc_resetn(self, val):                                              # TDC controller reset, low active
+        self._regMap['TDC_resetn'] = 0x1 & val
+
+    def set_tdc_polaritySel(self, val):                                         # TDC controller pulse output polarity, default value "1"
+        self._regMap['TDC_polaritySel'] = 0x1 & val
+
+    def set_tdc_autoReset(self, val):                                           # TDC controller work on auto reset mode, default "0", high active
+        self._regMap['TDC_autoReset'] = 0x1 & val
+
+    def set_Clk40Mout_AmplSel(self, val):                                       # 40 MHz clock CML output amplitude select, 3-bit default 3'b001
+        self._regMap['Clk40Mout_AmplSel'] = 0x7 & val
+
+    def set_tdc_enableMon(self, val):                                           # TDC raw data Monitor output, default value: 0
+        self._regMap['TDC_enableMon'] = 0x1 & val
+
+    def set_tdc_timeStampMode(self, val):                                       # Calibration output timeStamp Mode
+        self._regMap['TDC_timeStampMode'] = 0x1 & val
 
     ## get I2C register value
     def get_config_vector(self):
         reg_value = []
         reg_value += [self._regMap['Clk40Mout_disCMLDriver_BIAS'] << 1 | self._regMap['Dataout_disCMLDriver_BIAS']]             # register 0x00
-        reg_value += [self._regMap['tdc_enable'] << 7 | self._regMap['tdc_offset']]                                             # register 0x01
+        reg_value += [self._regMap['TDC_enable'] << 7 | self._regMap['TDC_offset']]                                             # register 0x01
+        reg_value += [self._regMap['TDC_autoReset'] << 7 | self._regMap['TDC_polaritySel'] << 6 | self._regMap['TDC_resetn'] << 5 | self._regMap['TDC_selRawCode'] << 4 | self._regMap['TDC_testMode'] << 3 | self._regMap['TDC_level']]        # register 0x02
+        reg_value += [self._regMap['TDC_timeStampMode'] << 4 | self._regMap['TDC_enableMon'] << 3 | self._regMap['Clk40Mout_AmplSel']]          # register 0x03
+        reg_value += [self._regMap['DMRO_revclk'] << 7 | self._regMap['DMRO_resetn'] << 6 | self._regMap['DMRO_reverse'] << 5 | self._regMap['DMRO_enable'] << 4 | self._regMap['DMRO_testmode'] << 3 | self._regMap['Dataout_AmplSel']]        # register 0x04
         return reg_value
 #--------------------------------------------------------------------------#
 ## main functionl
@@ -176,9 +208,10 @@ def main():
     # data_out = test_ddr3()
     # print(data_out)
     # data_plot(data_out)
-    etroc1_tdcReg = ETROC1_TDCReg()
-    etroc1_tdcReg.set_tdc_offset(0x01)
-    print(etroc1_tdcReg.get_config_vector())
+    ETROC1_TDCReg1 = ETROC1_TDCReg()
+    ETROC1_TDCReg1.set_tdc_offset(0x01)
+    ETROC1_TDCReg1.set_tdc_autoReset(0)
+    print(ETROC1_TDCReg1.get_config_vector())
     print("Ok!")
 #--------------------------------------------------------------------------#
 ## if statement
