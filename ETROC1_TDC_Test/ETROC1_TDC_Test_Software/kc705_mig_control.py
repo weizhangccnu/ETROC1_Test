@@ -123,7 +123,13 @@ class ETROC1_TDCReg(object):
         'Dataout_disCMLDriver_BIAS'     :   0,
         'Clk40Mout_disCMLDriver_BIAS'   :   0,
         'tdc_offset'                    :   0x0,
-        'tdc_enable'                    :   1
+        'tdc_enable'                    :   1,
+        'tdc_level'                     :   0x1,
+        'tdc_testMode'                  :   0,
+        'tdc_selRawCode'                :   0,
+        'tdc_resetn'                    :   1,
+        'tdc_polaritySel'               :   1,
+        'tdc_autoReset'                 :   0
     }
     ## @var register map local to the class
     _regMap = {}
@@ -142,6 +148,13 @@ class ETROC1_TDCReg(object):
 
     def set_tdc_enable(self, ONOFF):
         self._regMap['tdc_enable'] = 0x1 & ONOFF                                # ONOFF = 0, disable TDC controller, ONOFF = 1 enable TDC controller
+
+    def set_tdc_level(self, val):
+        self._regMap['tdc_level'] = 0x7 & val                                   # tdc encode bubble tolerance intensity, 1, 2, 3
+
+    def set_tdc_testMode(self, val):                                            # tdc testMode 1: TDC works on testMode, 0: TDC works on normal mode
+        self._regMap['tdc_testMode'] = 0x1 & val
+
 
     ## get I2C register value
     def get_config_vector(self):
