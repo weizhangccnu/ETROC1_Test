@@ -138,8 +138,34 @@ class ETROC1_TDCReg(object):
         'DMRO_enable'                   :   1,
         'DMRO_reverse'                  :   0,
         'DMRO_resetn'                   :   1,
-        'DMRO_revclk'                   :   0
-    }
+        'DMRO_revclk'                   :   0,
+        'Dataout_Sel'                   :   1,
+        'Clk320M_Psel'                  :   1,
+        'Clk40M_Psel'                   :   1,
+        'Clk320M_Sel'                   :   1,
+        'Clk40M_Sel'                    :   1,
+        'Pulse_Sel'                     :   0x03,
+        'Clk40M_equalizer'              :   0x0,
+        'Clk40M_invertData'             :   0,
+        'Clk40M_enableTermination'      :   1,
+        'Clk40M_setCommonMode'          :   1,
+        'Clk40M_enableRx'               :   1,
+        'Clk320M_equalizer'             :   0x0,
+        'Clk320M_invertData'            :   0,
+        'Clk320M_enableTermination'     :   1,
+        'Clk320M_setCommonMode'         :   1,
+        'Clk320M_enableRx'              :   1,
+        'Clk1G28_equalizer'             :   0x0,
+        'Clk1G28_invertData'            :   0,
+        'Clk1G28_enableTermination'     :   1,
+        'Clk1G28_setCommonMode'         :   1,
+        'Clk1G28_enableRx'              :   1,
+        'Pulse_equalizer'               :   0x0,
+        'Pulse_invertData'              :   0,
+        'Pulse_enableTermination'       :   1,
+        'Pulse_setCommonMode'           :   1,
+        'Pulse_enableRx'                :   1
+        }
     ## @var register map local to the class
     _regMap = {}
 
@@ -185,6 +211,84 @@ class ETROC1_TDCReg(object):
     def set_tdc_timeStampMode(self, val):                                       # Calibration output timeStamp Mode
         self._regMap['TDC_timeStampMode'] = 0x1 & val
 
+    def set_Dataout_Sel(self, val):                                             # Dataout for DMRO serial data or 320M pulse
+        self._regMap['Dataout_Sel'] = 0x1 & val
+
+    def set_Clk320M_Psel(self, val):                                            # select Clk320 pulse, 1: clock strobe generator   0: external pad input
+        self._regMap['Clk320M_Psel'] = 0x1 & val
+
+    def set_Clk40M_Psel(self, val):                                             # select Clk40 pulse, 1: clock strobe generator   0: external pad input
+        self._regMap['Clk40M_Psel'] = 0x1 & val
+
+    def set_Clk320M_Sel(self, val):                                             # select Clk320 clock, 1: clock divider   0: external pad input
+        self._regMap['Clk320M_Sel'] = 0x1 & val
+
+    def set_Clk40M_Sel(self, val):                                              # select Clk40 pulse, 1: clock divider   0: external pad input
+        self._regMap['Clk40M_Sel'] = 0x1 & val
+
+    def set_Pulse_Sel(self, val):                                               # strobe pulse select, default value 0x03
+        self._regMap['Pulse_Sel'] = 0xff & val
+
+    def set_Clk40M_equalizer(self, val):                                        # set clk40M input eRx equalizer intensity, default value 0x00
+        self._regMap['Clk40M_equalizer'] = 0x3 & val
+
+    def set_Clk40M_invertData(self, val):                                       # set clk40 input eRx data invert
+        self._regMap['Clk40M_invertData'] = 0x1 & val
+
+    def set_Clk40M_enableTermination(self, val):                                # set clk40M input eRx internal Termination
+        self._regMap['Clk40M_enableTermination'] = 0x1 & val
+
+    def set_Clk40M_setCommonMode(self, val):                                    # set clk40M input eRx internal Common voltage
+        self._regMap['Clk40M_setCommonMode'] = 0x1 & val
+
+    def set_Clk40M_enableRx(self, val):                                         # set clk40M input eRx enable or disable, 1: enable     0: disable
+        self._regMap['Clk40M_enableRx'] = 0x1 & val
+
+    def set_Clk320M_equalizer(self, val):                                       # set clk320M input eRx equalizer intensity, default value 0x00
+        self._regMap['Clk320M_equalizer'] = 0x3 & val
+
+    def set_Clk320M_invertData(self, val):                                      # set clk320 input eRx data invert
+        self._regMap['Clk320M_invertData'] = 0x1 & val
+
+    def set_Clk320M_enableTermination(self, val):                               # set clk320M input eRx internal Termination
+        self._regMap['Clk320M_enableTermination'] = 0x1 & val
+
+    def set_Clk320M_setCommonMode(self, val):                                   # set clk320M input eRx internal Common voltage
+        self._regMap['Clk320M_setCommonMode'] = 0x1 & val
+
+    def set_Clk320M_enableRx(self, val):                                        # set clk320M input eRx enable or disable, 1: enable     0: disable
+        self._regMap['Clk320M_enableRx'] = 0x1 & val
+
+    def set_Clk1G28_equalizer(self, val):                                       # set clk1G28 input eRx equalizer intensity, default value 0x00
+        self._regMap['Clk1G28_equalizer'] = 0x3 & val
+
+    def set_Clk1G28_invertData(self, val):                                      # set clk1G28 input eRx data invert
+        self._regMap['Clk1G28_invertData'] = 0x1 & val
+
+    def set_Clk1G28_enableTermination(self, val):                               # set clk1G28 input eRx internal Termination
+        self._regMap['Clk1G28_enableTermination'] = 0x1 & val
+
+    def set_Clk1G28_setCommonMode(self, val):                                   # set clk1G28 input eRx internal Common voltage
+        self._regMap['Clk1G28_setCommonMode'] = 0x1 & val
+
+    def set_Clk1G28_enableRx(self, val):                                        # set clk1G28 input eRx enable or disable, 1: enable     0: disable
+        self._regMap['Clk1G28_enableRx'] = 0x1 & val
+
+    def set_Pulse_equalizer(self, val):                                         # set Pulse input eRx equalizer intensity, default value 0x00
+        self._regMap['Pulse_equalizer'] = 0x3 & val
+
+    def set_Pulse_invertData(self, val):                                        # set Pulse input eRx data invert
+        self._regMap['Pulse_invertData'] = 0x1 & val
+
+    def set_Pulse_enableTermination(self, val):                                 # set Pulse input eRx internal Termination
+        self._regMap['Pulse_enableTermination'] = 0x1 & val
+
+    def set_Pulse_setCommonMode(self, val):                                     # set Pulse input eRx internal Common voltage
+        self._regMap['Pulse_setCommonMode'] = 0x1 & val
+
+    def set_Pulse_enableRx(self, val):                                          # set Pulse input eRx enable or disable, 1: enable     0: disable
+        self._regMap['Pulse_enableRx'] = 0x1 & val
+
     ## get I2C register value
     def get_config_vector(self):
         reg_value = []
@@ -193,6 +297,12 @@ class ETROC1_TDCReg(object):
         reg_value += [self._regMap['TDC_autoReset'] << 7 | self._regMap['TDC_polaritySel'] << 6 | self._regMap['TDC_resetn'] << 5 | self._regMap['TDC_selRawCode'] << 4 | self._regMap['TDC_testMode'] << 3 | self._regMap['TDC_level']]        # register 0x02
         reg_value += [self._regMap['TDC_timeStampMode'] << 4 | self._regMap['TDC_enableMon'] << 3 | self._regMap['Clk40Mout_AmplSel']]          # register 0x03
         reg_value += [self._regMap['DMRO_revclk'] << 7 | self._regMap['DMRO_resetn'] << 6 | self._regMap['DMRO_reverse'] << 5 | self._regMap['DMRO_enable'] << 4 | self._regMap['DMRO_testmode'] << 3 | self._regMap['Dataout_AmplSel']]        # register 0x04
+        reg_value += [self._regMap['Clk40M_Sel'] << 4 | self._regMap['Clk320M_Sel'] << 3 | self._regMap['Clk40M_Psel'] << 2 | self._regMap['Clk320M_Psel'] << 1 | self._regMap['Dataout_Sel']]      # reg 0x05
+        reg_value += [self._regMap['Pulse_Sel']]    # reg 0x06
+        reg_value += [self._regMap['Clk40M_enableRx'] << 5 | self._regMap['Clk40M_setCommonMode'] << 4 | self._regMap['Clk40M_enableTermination'] << 3 | self._regMap['Clk40M_invertData'] << 2 | self._regMap['Clk40M_equalizer']] # reg 0x07
+        reg_value += [self._regMap['Clk320M_enableRx'] << 5 | self._regMap['Clk320M_setCommonMode'] << 4 | self._regMap['Clk320M_enableTermination'] << 3 | self._regMap['Clk320M_invertData'] << 2 | self._regMap['Clk320M_equalizer']] # reg 0x08
+        reg_value += [self._regMap['Clk1G28_enableRx'] << 5 | self._regMap['Clk1G28_setCommonMode'] << 4 | self._regMap['Clk1G28_enableTermination'] << 3 | self._regMap['Clk1G28_invertData'] << 2 | self._regMap['Clk1G28_equalizer']] # reg 0x09
+        reg_value += [self._regMap['Pulse_enableRx'] << 5 | self._regMap['Pulse_setCommonMode'] << 4 | self._regMap['Pulse_enableTermination'] << 3 | self._regMap['Pulse_invertData'] << 2 | self._regMap['Pulse_equalizer']] # reg 0x0A
         return reg_value
 #--------------------------------------------------------------------------#
 ## main functionl
@@ -211,6 +321,9 @@ def main():
     ETROC1_TDCReg1 = ETROC1_TDCReg()
     ETROC1_TDCReg1.set_tdc_offset(0x01)
     ETROC1_TDCReg1.set_tdc_autoReset(0)
+    ETROC1_TDCReg1.set_Clk320M_enableRx(0)
+    ETROC1_TDCReg1.set_Clk1G28_enableRx(0)
+    ETROC1_TDCReg1.set_Pulse_enableRx(0)
     print(ETROC1_TDCReg1.get_config_vector())
     print("Ok!")
 #--------------------------------------------------------------------------#
