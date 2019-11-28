@@ -130,10 +130,10 @@ class ETROC1_TDCReg(object):
         'TDC_resetn'                    :   1,
         'TDC_polaritySel'               :   1,
         'TDC_autoReset'                 :   0,
-        'Clk40Mout_AmplSel'             :   1,
+        'Clk40Mout_AmplSel'             :   0x1,
         'TDC_enableMon'                 :   0,
         'TDC_timeStampMode'             :   1,
-        'Dataout_AmplSel'               :   1,
+        'Dataout_AmplSel'               :   0x1,
         'DMRO_testmode'                 :   0,
         'DMRO_enable'                   :   1,
         'DMRO_reverse'                  :   0,
@@ -164,7 +164,16 @@ class ETROC1_TDCReg(object):
         'Pulse_invertData'              :   0,
         'Pulse_enableTermination'       :   1,
         'Pulse_setCommonMode'           :   1,
-        'Pulse_enableRx'                :   1
+        'Pulse_enableRx'                :   1,
+        'TDCRawData_Sel'                :   1,
+        'GRO_TOT_CK'                    :   1,
+        'GRO_TOTRST_N'                  :   1,
+        'GRO_TOA_Latch'                 :   1,
+        'GRO_TOA_CK'                    :   1,
+        'GRO_TOARST_N'                  :   1,
+        'GRO_Start'                     :   0,
+        'GROout_disCMLDriverBIAS'       :   0,
+        'GROout_AmplSel'                :   0x1
         }
     ## @var register map local to the class
     _regMap = {}
@@ -178,37 +187,37 @@ class ETROC1_TDCReg(object):
     def set_Clk40Mout_disCMLDriver_BIAS(self, val):                             # val = 0, CML driver bias enable, val = 1 CML driver bias disable
         self._regMap['Clk40Mout_disCMLDriver_BIAS'] = 0x1 & val
 
-    def set_tdc_offset(self, val):                                              # measurement window offset 0-127
+    def set_TDC_offset(self, val):                                              # measurement window offset 0-127
         self._regMap['TDC_offset'] = 0x7f & val
 
-    def set_tdc_enable(self, val):                                              # ONOFF = 0, disable TDC controller, ONOFF = 1 enable TDC controller
+    def set_TDC_enable(self, val):                                              # ONOFF = 0, disable TDC controller, ONOFF = 1 enable TDC controller
         self._regMap['TDC_enable'] = 0x1 & val
 
-    def set_tdc_level(self, val):                                               # TDC encode bubble tolerance intensity, 1, 2, 3
+    def set_TDC_level(self, val):                                               # TDC encode bubble tolerance intensity, 1, 2, 3
         self._regMap['TDC_level'] = 0x7 & val
 
-    def set_tdc_testMode(self, val):                                            # TDC testMode 1: TDC works on testMode, 0: TDC works on normal mode
+    def set_TDC_testMode(self, val):                                            # TDC testMode 1: TDC works on testMode, 0: TDC works on normal mode
         self._regMap['TDC_testMode'] = 0x1 & val
 
-    def set_tdc_selRawCode(self, val):                                          # always keep "0"
+    def set_TDC_selRawCode(self, val):                                          # always keep "0"
         self._regMap['TDC_selRawCode']  = 0x1 & val
 
-    def set_tdc_resetn(self, val):                                              # TDC controller reset, low active
+    def set_TDC_resetn(self, val):                                              # TDC controller reset, low active
         self._regMap['TDC_resetn'] = 0x1 & val
 
-    def set_tdc_polaritySel(self, val):                                         # TDC controller pulse output polarity, default value "1"
+    def set_TDC_polaritySel(self, val):                                         # TDC controller pulse output polarity, default value "1"
         self._regMap['TDC_polaritySel'] = 0x1 & val
 
-    def set_tdc_autoReset(self, val):                                           # TDC controller work on auto reset mode, default "0", high active
+    def set_TDC_autoReset(self, val):                                           # TDC controller work on auto reset mode, default "0", high active
         self._regMap['TDC_autoReset'] = 0x1 & val
 
     def set_Clk40Mout_AmplSel(self, val):                                       # 40 MHz clock CML output amplitude select, 3-bit default 3'b001
         self._regMap['Clk40Mout_AmplSel'] = 0x7 & val
 
-    def set_tdc_enableMon(self, val):                                           # TDC raw data Monitor output, default value: 0
+    def set_TDC_enableMon(self, val):                                           # TDC raw data Monitor output, default value: 0
         self._regMap['TDC_enableMon'] = 0x1 & val
 
-    def set_tdc_timeStampMode(self, val):                                       # Calibration output timeStamp Mode
+    def set_TDC_timeStampMode(self, val):                                       # Calibration output timeStamp Mode
         self._regMap['TDC_timeStampMode'] = 0x1 & val
 
     def set_Dataout_Sel(self, val):                                             # Dataout for DMRO serial data or 320M pulse
@@ -289,6 +298,33 @@ class ETROC1_TDCReg(object):
     def set_Pulse_enableRx(self, val):                                          # set Pulse input eRx enable or disable, 1: enable     0: disable
         self._regMap['Pulse_enableRx'] = 0x1 & val
 
+    def set_TDCRawData_Sel(self, val):                                          # TDC raw data output MUX switcher
+        self._regMap['TDCRawData_Sel'] = 0x1 & val
+
+    def set_GRO_TOT_CK(self, val):                                              # set GRO TOT clock
+        self._regMap['GRO_TOT_CK'] = 0x1 & val
+
+    def set_GRO_TOTRST_N(self, val):                                            # set GRO TOT Reset, default 1, low active
+        self._regMap['GRO_TOTRST_N'] = 0x1 & val
+
+    def set_GRO_TOA_Latch(self, val):                                           # set GRO TOA_Latch clock
+        self._regMap['GRO_TOA_Latch'] = 0x1 & val
+
+    def set_GRO_TOA_CK(self, val):                                              # set GRO TOA clock
+        self._regMap['GRO_TOA_CK'] = 0x1 & val
+
+    def set_GRO_TOARST_N(self, val):                                            # set GRO TOA Reset, default 1, low active
+        self._regMap['GRO_TOARST_N'] = 0x1 & val
+
+    def set_GRO_Start(self, val):                                               # set GRO Start signal, default 0, high active
+        self._regMap['GRO_Start'] = 0x1 & val
+
+    def set_GROout_disCMLDriverBISA(self, val):                                 # set GRO CML Driver bias disable, default 0
+        self._regMap['GROout_disCMLDriverBIAS'] = 0x1 & val
+
+    def set_GROout_AmplSel(self, val):                                          # set GRO CML driver output signal amplitude
+        self._regMap['GROout_AmplSel'] = 0x7 & val
+
     ## get I2C register value
     def get_config_vector(self):
         reg_value = []
@@ -303,6 +339,8 @@ class ETROC1_TDCReg(object):
         reg_value += [self._regMap['Clk320M_enableRx'] << 5 | self._regMap['Clk320M_setCommonMode'] << 4 | self._regMap['Clk320M_enableTermination'] << 3 | self._regMap['Clk320M_invertData'] << 2 | self._regMap['Clk320M_equalizer']] # reg 0x08
         reg_value += [self._regMap['Clk1G28_enableRx'] << 5 | self._regMap['Clk1G28_setCommonMode'] << 4 | self._regMap['Clk1G28_enableTermination'] << 3 | self._regMap['Clk1G28_invertData'] << 2 | self._regMap['Clk1G28_equalizer']] # reg 0x09
         reg_value += [self._regMap['Pulse_enableRx'] << 5 | self._regMap['Pulse_setCommonMode'] << 4 | self._regMap['Pulse_enableTermination'] << 3 | self._regMap['Pulse_invertData'] << 2 | self._regMap['Pulse_equalizer']] # reg 0x0A
+        reg_value += [self._regMap['GRO_Start'] << 6 | self._regMap['GRO_TOARST_N'] << 5 | self._regMap['GRO_TOA_CK'] << 4 | self._regMap['GRO_TOA_Latch'] << 3 | self._regMap['GRO_TOTRST_N'] << 2 | self._regMap['GRO_TOT_CK'] << 1 | self._regMap['TDCRawData_Sel']] # reg 0x0B
+        reg_value += [self._regMap['GROout_AmplSel'] << 1 | self._regMap['GROout_disCMLDriverBIAS']]
         return reg_value
 #--------------------------------------------------------------------------#
 ## main functionl
@@ -319,11 +357,12 @@ def main():
     # print(data_out)
     # data_plot(data_out)
     ETROC1_TDCReg1 = ETROC1_TDCReg()
-    ETROC1_TDCReg1.set_tdc_offset(0x01)
-    ETROC1_TDCReg1.set_tdc_autoReset(0)
+    ETROC1_TDCReg1.set_TDC_offset(0x01)
+    ETROC1_TDCReg1.set_TDC_autoReset(0)
     ETROC1_TDCReg1.set_Clk320M_enableRx(0)
     ETROC1_TDCReg1.set_Clk1G28_enableRx(0)
     ETROC1_TDCReg1.set_Pulse_enableRx(0)
+    ETROC1_TDCReg1.set_GROout_disCMLDriverBISA(1)
     print(ETROC1_TDCReg1.get_config_vector())
     print("Ok!")
 #--------------------------------------------------------------------------#
