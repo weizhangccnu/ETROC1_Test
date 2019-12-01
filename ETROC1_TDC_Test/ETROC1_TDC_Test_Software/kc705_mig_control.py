@@ -1,12 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import sys
 import copy
 import time
 import struct
 import socket
-from command_interpret import *
 import numpy as np
+from command_interpret import *
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
@@ -371,5 +371,5 @@ if __name__ == "__main__":
 	# s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	#initial socket
 	# s.connect((hostname, port))								#connect socket
 	# cmd_interpret = command_interpret(s)					#Class instance
-	main()													#execute main function
-	# s.close()												#close socket
+	main()									#execute main function
+	# s.close()								#close socket
