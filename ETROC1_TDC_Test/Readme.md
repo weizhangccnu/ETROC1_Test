@@ -10,6 +10,7 @@
 ![KC705 EVB](https://github.com/weizhangccnu/ETROC1_Test/blob/master/ETROC1_TDC_Test/Img/KC705_EVB.png) 
   - Configure KC705 EVB download mode The DIP switch **SW13** position 3,4, and 5 control determine the configuration mode and the configuration mode is used at power-up or when the PROG pushbutton is pressed. The SW13 should be set as shown the below figure.  ![Configuration mode](https://github.com/weizhangccnu/Python_Script/blob/master/ETROC1_TDC_Test_Software/Img/FPGA_Configuration_mode.png)
   - Firmware was synthesized and implemented on ***Vivado 2016.2***. The `kc705_mig.bit` or `kc705_mig.mcs` file is downlaoded into KC705 EVB via Vivado 2016.2 IDE. 
+  - Configure PC IP address. The PC network IP address and FPGA IP address should be in the same network segment and the default PC network IP address is **192.168.2.254**.
   - The FPGA socket address is 192.168.2.x, The x is configurable via switch (DIP switch **SW11** positions 1 and 2 control the value of `x`, the positions 1 and 2 are **ON**, `x=3`, the position 1 is **ON** and the position 2 is **OFF**, `x=1`, and so forth) and its value ranges from 0 to 3 and the port number is fixed to 1024. [Schematic of KC705 EVB](https://www.xilinx.com/support/documentation/boards_and_kits/kc705_Schematic_xtp132_rev1_1.pdf)
 ```verilog
 hostname = '192.168.2.3'			#FPGA IP address
@@ -19,7 +20,7 @@ port = 1024					#port number
     - Before executing ping command at docs command line, we should make sure that the Ethernet interface of KC705 EVB was connected to PC RJ45 interface with a **1000M** ethernet cable. 
     - Open Windows docs command line and execute command `ping 192.168.2.3`. The below figure shows the connected and disconnected outputs after executing `ping 192.168.2.3` command.
 ![Ping Command](https://github.com/weizhangccnu/ETROC1_Test/blob/master/ETROC1_TDC_Test/Img/Ping_Command.PNG)
-  - The GTX transceiver needs a pair of differential clock that will be provided by Si5338 EVB **CLK0A/CLK0B**. The GTX transceiver reference clock input locates on **J15/J16** SMA connectors as reference clock whose frequency is accurate **160 MHz**. The GTX transceiver isn't sensitive to the ploarity of reference clock, so you needn't take care of the ploarity when you can connect **J15/J16** SMA connectors with **CLK0A/CLK0B** SMA connectors via coxial cables.
+  - The GTX transceiver needs a pair of differential clock that will be provided by Si5338 EVB **CLK0A/CLK0B**. The GTX transceiver reference clock input locates on **J15/J16** SMA connectors as reference clock whose frequency is accurate **160 MHz**. The GTX transceiver isn't sensitive to the ploarity of reference clock, so you needn't take care of the ploarity when you connect **J15/J16** SMA connectors with **CLK0A/CLK0B** SMA connectors via coxial cables.
   - The I2C SCL and SDA interface are assigned on **Pin 18 and 20** of the KC705 EVB **J46** connector. The I2C infterface mapping is shown as below figure.
 ![I2C interface mapping](https://github.com/weizhangccnu/ETROC1_Test/blob/master/ETROC1_TDC_Test/Img/I2C_Interface_Mapping.png)
 
