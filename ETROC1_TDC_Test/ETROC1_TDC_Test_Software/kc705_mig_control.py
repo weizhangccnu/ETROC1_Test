@@ -3,9 +3,12 @@
 import sys
 import copy
 import time
+import visa
 import struct
 import socket
+import heartrate
 from command_interpret import *
+from ETROC1_TDCReg import *
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
@@ -51,19 +54,19 @@ def test_ddr3():
 
     cmd_interpret.write_config_reg(0, 0x0001)       # written enable
 
-    write_data_into_ddr3(1, 0x0000000, 0x0100000)   # set write begin address and post trigger address and wrap around
+    write_data_into_ddr3(1, 0x0000000, 0x0600000)   # set write begin address and post trigger address and wrap around
     cmd_interpret.write_pulse_reg(0x0008)           # writing start
     cmd_interpret.write_pulse_reg(0x0010)           # writing stop
 
     time.sleep(1)
     cmd_interpret.write_config_reg(0, 0x0000)       # write enable
     time.sleep(2)
-    read_data_from_ddr3(0x0100000)                  # set read begin address
+    read_data_from_ddr3(0x0600000)                  # set read begin address
 
     data_out = []
     ## memoryview usage
-    for i in range(30):
-        data_out += cmd_interpret.read_data_fifo(60000)           # reading start
+    for i in range(200):
+        data_out += cmd_interpret.read_data_fifo(50000)           # reading start
     return data_out
 #--------------------------------------------------------------------------#
 ## IIC write slave device
@@ -101,275 +104,98 @@ def iic_read(mode, slave_addr, wr, reg_addr):
     time.sleep(0.01)									                      # delay 10ns then to read data
     return cmd_interpret.read_status_reg(0) & 0xff
 #--------------------------------------------------------------------------#
-## ddr3 fetching data plot
-# @param[in] data: a data list
-def data_plot(data):
-    plt.plot(data, color='r',marker='X', linewidth=0.2, markersize=0.02, label='DDR3 fetched data')
-    plt.title("DDR3 Fetched data plot", family="Times New Roman", fontsize=12)
-    plt.xlabel("Point", family="Times New Roman", fontsize=10)
-    plt.ylabel("Number", family="Times New Roman", fontsize=10)
-    plt.xticks(family="Times New Roman", fontsize=8)
-    plt.yticks(family="Times New Roman", fontsize=8)
-    plt.grid(linestyle='-.', linewidth=lw_grid)
-    plt.legend(fontsize=8, edgecolor='green')
-    plt.savefig("DDR3_Fetched_data.png", dpi=fig_dpi, bbox_inches='tight')         # save figure
-    plt.clf()
-#--------------------------------------------------------------------------#
-## Manage ETROC1 TDC chip's internal registers map
-# Allow combining and disassembling individual registers
-class ETROC1_TDCReg(object):
-    ## @var _defaultRegMap default register values
-    _defaultRegMap = {
-        'Dataout_disCMLDriver_BIAS'     :   0,
-        'Clk40Mout_disCMLDriver_BIAS'   :   0,
-        'TDC_offset'                    :   0x0,
-        'TDC_enable'                    :   1,
-        'TDC_level'                     :   0x1,
-        'TDC_testMode'                  :   0,
-        'TDC_selRawCode'                :   0,
-        'TDC_resetn'                    :   1,
-        'TDC_polaritySel'               :   1,
-        'TDC_autoReset'                 :   0,
-        'Clk40Mout_AmplSel'             :   0x1,
-        'TDC_enableMon'                 :   0,
-        'TDC_timeStampMode'             :   1,
-        'Dataout_AmplSel'               :   0x1,
-        'DMRO_testmode'                 :   0,
-        'DMRO_enable'                   :   1,
-        'DMRO_reverse'                  :   0,
-        'DMRO_resetn'                   :   1,
-        'DMRO_revclk'                   :   0,
-        'Dataout_Sel'                   :   1,
-        'Clk320M_Psel'                  :   1,
-        'Clk40M_Psel'                   :   1,
-        'Clk320M_Sel'                   :   1,
-        'Clk40M_Sel'                    :   1,
-        'Pulse_Sel'                     :   0x03,
-        'Clk40M_equalizer'              :   0x0,
-        'Clk40M_invertData'             :   0,
-        'Clk40M_enableTermination'      :   1,
-        'Clk40M_setCommonMode'          :   1,
-        'Clk40M_enableRx'               :   1,
-        'Clk320M_equalizer'             :   0x0,
-        'Clk320M_invertData'            :   0,
-        'Clk320M_enableTermination'     :   1,
-        'Clk320M_setCommonMode'         :   1,
-        'Clk320M_enableRx'              :   1,
-        'Clk1G28_equalizer'             :   0x0,
-        'Clk1G28_invertData'            :   0,
-        'Clk1G28_enableTermination'     :   1,
-        'Clk1G28_setCommonMode'         :   1,
-        'Clk1G28_enableRx'              :   1,
-        'Pulse_equalizer'               :   0x0,
-        'Pulse_invertData'              :   0,
-        'Pulse_enableTermination'       :   1,
-        'Pulse_setCommonMode'           :   1,
-        'Pulse_enableRx'                :   1,
-        'TDCRawData_Sel'                :   1,
-        'GRO_TOT_CK'                    :   1,
-        'GRO_TOTRST_N'                  :   1,
-        'GRO_TOA_Latch'                 :   1,
-        'GRO_TOA_CK'                    :   1,
-        'GRO_TOARST_N'                  :   1,
-        'GRO_Start'                     :   0,
-        'GROout_disCMLDriverBIAS'       :   0,
-        'GROout_AmplSel'                :   0x1
-        }
-    ## @var register map local to the class
-    _regMap = {}
-
-    def __init__(self):
-        self._regMap = copy.deepcopy(self._defaultRegMap)
-
-    def set_Dataout_disCMLDriver_BIAS(self, val):                               # val = 0, CML driver bias enable, val = 1 CML driver bias disable
-        self._regMap['Dataout_disCMLDriver_BIAS'] = 0x1 & val
-
-    def set_Clk40Mout_disCMLDriver_BIAS(self, val):                             # val = 0, CML driver bias enable, val = 1 CML driver bias disable
-        self._regMap['Clk40Mout_disCMLDriver_BIAS'] = 0x1 & val
-
-    def set_TDC_offset(self, val):                                              # measurement window offset 0-127
-        self._regMap['TDC_offset'] = 0x7f & val
-
-    def set_TDC_enable(self, val):                                              # ONOFF = 0, disable TDC controller, ONOFF = 1 enable TDC controller
-        self._regMap['TDC_enable'] = 0x1 & val
-
-    def set_TDC_level(self, val):                                               # TDC encode bubble tolerance intensity, 1, 2, 3
-        self._regMap['TDC_level'] = 0x7 & val
-
-    def set_TDC_testMode(self, val):                                            # TDC testMode 1: TDC works on testMode, 0: TDC works on normal mode
-        self._regMap['TDC_testMode'] = 0x1 & val
-
-    def set_TDC_selRawCode(self, val):                                          # always keep "0"
-        self._regMap['TDC_selRawCode']  = 0x1 & val
-
-    def set_TDC_resetn(self, val):                                              # TDC controller reset, low active
-        self._regMap['TDC_resetn'] = 0x1 & val
-
-    def set_TDC_polaritySel(self, val):                                         # TDC controller pulse output polarity, default value "1"
-        self._regMap['TDC_polaritySel'] = 0x1 & val
-
-    def set_TDC_autoReset(self, val):                                           # TDC controller work on auto reset mode, default "0", high active
-        self._regMap['TDC_autoReset'] = 0x1 & val
-
-    def set_Clk40Mout_AmplSel(self, val):                                       # 40 MHz clock CML output amplitude select, 3-bit default 3'b001
-        self._regMap['Clk40Mout_AmplSel'] = 0x7 & val
-
-    def set_TDC_enableMon(self, val):                                           # TDC raw data Monitor output, default value: 0
-        self._regMap['TDC_enableMon'] = 0x1 & val
-
-    def set_TDC_timeStampMode(self, val):                                       # Calibration output timeStamp Mode
-        self._regMap['TDC_timeStampMode'] = 0x1 & val
-
-    def set_Dataout_Sel(self, val):                                             # Dataout for DMRO serial data or 320M pulse
-        self._regMap['Dataout_Sel'] = 0x1 & val
-
-    def set_Clk320M_Psel(self, val):                                            # select Clk320 pulse, 1: clock strobe generator   0: external pad input
-        self._regMap['Clk320M_Psel'] = 0x1 & val
-
-    def set_Clk40M_Psel(self, val):                                             # select Clk40 pulse, 1: clock strobe generator   0: external pad input
-        self._regMap['Clk40M_Psel'] = 0x1 & val
-
-    def set_Clk320M_Sel(self, val):                                             # select Clk320 clock, 1: clock divider   0: external pad input
-        self._regMap['Clk320M_Sel'] = 0x1 & val
-
-    def set_Clk40M_Sel(self, val):                                              # select Clk40 pulse, 1: clock divider   0: external pad input
-        self._regMap['Clk40M_Sel'] = 0x1 & val
-
-    def set_Pulse_Sel(self, val):                                               # strobe pulse select, default value 0x03
-        self._regMap['Pulse_Sel'] = 0xff & val
-
-    def set_Clk40M_equalizer(self, val):                                        # set clk40M input eRx equalizer intensity, default value 0x00
-        self._regMap['Clk40M_equalizer'] = 0x3 & val
-
-    def set_Clk40M_invertData(self, val):                                       # set clk40 input eRx data invert
-        self._regMap['Clk40M_invertData'] = 0x1 & val
-
-    def set_Clk40M_enableTermination(self, val):                                # set clk40M input eRx internal Termination
-        self._regMap['Clk40M_enableTermination'] = 0x1 & val
-
-    def set_Clk40M_setCommonMode(self, val):                                    # set clk40M input eRx internal Common voltage
-        self._regMap['Clk40M_setCommonMode'] = 0x1 & val
-
-    def set_Clk40M_enableRx(self, val):                                         # set clk40M input eRx enable or disable, 1: enable     0: disable
-        self._regMap['Clk40M_enableRx'] = 0x1 & val
-
-    def set_Clk320M_equalizer(self, val):                                       # set clk320M input eRx equalizer intensity, default value 0x00
-        self._regMap['Clk320M_equalizer'] = 0x3 & val
-
-    def set_Clk320M_invertData(self, val):                                      # set clk320 input eRx data invert
-        self._regMap['Clk320M_invertData'] = 0x1 & val
-
-    def set_Clk320M_enableTermination(self, val):                               # set clk320M input eRx internal Termination
-        self._regMap['Clk320M_enableTermination'] = 0x1 & val
-
-    def set_Clk320M_setCommonMode(self, val):                                   # set clk320M input eRx internal Common voltage
-        self._regMap['Clk320M_setCommonMode'] = 0x1 & val
-
-    def set_Clk320M_enableRx(self, val):                                        # set clk320M input eRx enable or disable, 1: enable     0: disable
-        self._regMap['Clk320M_enableRx'] = 0x1 & val
-
-    def set_Clk1G28_equalizer(self, val):                                       # set clk1G28 input eRx equalizer intensity, default value 0x00
-        self._regMap['Clk1G28_equalizer'] = 0x3 & val
-
-    def set_Clk1G28_invertData(self, val):                                      # set clk1G28 input eRx data invert
-        self._regMap['Clk1G28_invertData'] = 0x1 & val
-
-    def set_Clk1G28_enableTermination(self, val):                               # set clk1G28 input eRx internal Termination
-        self._regMap['Clk1G28_enableTermination'] = 0x1 & val
-
-    def set_Clk1G28_setCommonMode(self, val):                                   # set clk1G28 input eRx internal Common voltage
-        self._regMap['Clk1G28_setCommonMode'] = 0x1 & val
-
-    def set_Clk1G28_enableRx(self, val):                                        # set clk1G28 input eRx enable or disable, 1: enable     0: disable
-        self._regMap['Clk1G28_enableRx'] = 0x1 & val
-
-    def set_Pulse_equalizer(self, val):                                         # set Pulse input eRx equalizer intensity, default value 0x00
-        self._regMap['Pulse_equalizer'] = 0x3 & val
-
-    def set_Pulse_invertData(self, val):                                        # set Pulse input eRx data invert
-        self._regMap['Pulse_invertData'] = 0x1 & val
-
-    def set_Pulse_enableTermination(self, val):                                 # set Pulse input eRx internal Termination
-        self._regMap['Pulse_enableTermination'] = 0x1 & val
-
-    def set_Pulse_setCommonMode(self, val):                                     # set Pulse input eRx internal Common voltage
-        self._regMap['Pulse_setCommonMode'] = 0x1 & val
-
-    def set_Pulse_enableRx(self, val):                                          # set Pulse input eRx enable or disable, 1: enable     0: disable
-        self._regMap['Pulse_enableRx'] = 0x1 & val
-
-    def set_TDCRawData_Sel(self, val):                                          # TDC raw data output MUX switcher
-        self._regMap['TDCRawData_Sel'] = 0x1 & val
-
-    def set_GRO_TOT_CK(self, val):                                              # set GRO TOT clock
-        self._regMap['GRO_TOT_CK'] = 0x1 & val
-
-    def set_GRO_TOTRST_N(self, val):                                            # set GRO TOT Reset, default 1, low active
-        self._regMap['GRO_TOTRST_N'] = 0x1 & val
-
-    def set_GRO_TOA_Latch(self, val):                                           # set GRO TOA_Latch clock
-        self._regMap['GRO_TOA_Latch'] = 0x1 & val
-
-    def set_GRO_TOA_CK(self, val):                                              # set GRO TOA clock
-        self._regMap['GRO_TOA_CK'] = 0x1 & val
-
-    def set_GRO_TOARST_N(self, val):                                            # set GRO TOA Reset, default 1, low active
-        self._regMap['GRO_TOARST_N'] = 0x1 & val
-
-    def set_GRO_Start(self, val):                                               # set GRO Start signal, default 0, high active
-        self._regMap['GRO_Start'] = 0x1 & val
-
-    def set_GROout_disCMLDriverBISA(self, val):                                 # set GRO CML Driver bias disable, default 0
-        self._regMap['GROout_disCMLDriverBIAS'] = 0x1 & val
-
-    def set_GROout_AmplSel(self, val):                                          # set GRO CML driver output signal amplitude
-        self._regMap['GROout_AmplSel'] = 0x7 & val
-
-    ## get I2C register value
-    def get_config_vector(self):
-        reg_value = []
-        reg_value += [self._regMap['Clk40Mout_disCMLDriver_BIAS'] << 1 | self._regMap['Dataout_disCMLDriver_BIAS']]             # register 0x00
-        reg_value += [self._regMap['TDC_enable'] << 7 | self._regMap['TDC_offset']]                                             # register 0x01
-        reg_value += [self._regMap['TDC_autoReset'] << 7 | self._regMap['TDC_polaritySel'] << 6 | self._regMap['TDC_resetn'] << 5 | self._regMap['TDC_selRawCode'] << 4 | self._regMap['TDC_testMode'] << 3 | self._regMap['TDC_level']]        # register 0x02
-        reg_value += [self._regMap['TDC_timeStampMode'] << 4 | self._regMap['TDC_enableMon'] << 3 | self._regMap['Clk40Mout_AmplSel']]          # register 0x03
-        reg_value += [self._regMap['DMRO_revclk'] << 7 | self._regMap['DMRO_resetn'] << 6 | self._regMap['DMRO_reverse'] << 5 | self._regMap['DMRO_enable'] << 4 | self._regMap['DMRO_testmode'] << 3 | self._regMap['Dataout_AmplSel']]        # register 0x04
-        reg_value += [self._regMap['Clk40M_Sel'] << 4 | self._regMap['Clk320M_Sel'] << 3 | self._regMap['Clk40M_Psel'] << 2 | self._regMap['Clk320M_Psel'] << 1 | self._regMap['Dataout_Sel']]      # reg 0x05
-        reg_value += [self._regMap['Pulse_Sel']]    # reg 0x06
-        reg_value += [self._regMap['Clk40M_enableRx'] << 5 | self._regMap['Clk40M_setCommonMode'] << 4 | self._regMap['Clk40M_enableTermination'] << 3 | self._regMap['Clk40M_invertData'] << 2 | self._regMap['Clk40M_equalizer']] # reg 0x07
-        reg_value += [self._regMap['Clk320M_enableRx'] << 5 | self._regMap['Clk320M_setCommonMode'] << 4 | self._regMap['Clk320M_enableTermination'] << 3 | self._regMap['Clk320M_invertData'] << 2 | self._regMap['Clk320M_equalizer']] # reg 0x08
-        reg_value += [self._regMap['Clk1G28_enableRx'] << 5 | self._regMap['Clk1G28_setCommonMode'] << 4 | self._regMap['Clk1G28_enableTermination'] << 3 | self._regMap['Clk1G28_invertData'] << 2 | self._regMap['Clk1G28_equalizer']] # reg 0x09
-        reg_value += [self._regMap['Pulse_enableRx'] << 5 | self._regMap['Pulse_setCommonMode'] << 4 | self._regMap['Pulse_enableTermination'] << 3 | self._regMap['Pulse_invertData'] << 2 | self._regMap['Pulse_equalizer']] # reg 0x0A
-        reg_value += [self._regMap['GRO_Start'] << 6 | self._regMap['GRO_TOARST_N'] << 5 | self._regMap['GRO_TOA_CK'] << 4 | self._regMap['GRO_TOA_Latch'] << 3 | self._regMap['GRO_TOTRST_N'] << 2 | self._regMap['GRO_TOT_CK'] << 1 | self._regMap['TDCRawData_Sel']] # reg 0x0B
-        reg_value += [self._regMap['GROout_AmplSel'] << 1 | self._regMap['GROout_disCMLDriverBIAS']]
-        return reg_value
+## Enable FPGA Descrambler
+def Enable_FPGA_Descrablber(val):
+    print("val: %d"%val)
+    cmd_interpret.write_config_reg(14, 0x0001 & val)       # write enable
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
-    # reg_addr = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,\
-    #             0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b]
-    # for j in range(len(reg_addr)):
-    #     iic_write(1, 0x22, 0, reg_addr[j], j)
-    # print(len(reg_addr))
-    # for i in range(len(reg_addr)):
-    #     print("reg addr %s:"%str(hex(reg_addr[i])), hex(iic_read(0, 0x22, 1, reg_addr[i])))
-    # data_out = []
-    # data_out = test_ddr3()
-    # print(data_out)
-    # data_plot(data_out)
+    slave_addr = 0x23                                       # I2C slave address
+    reg_val = []
     ETROC1_TDCReg1 = ETROC1_TDCReg()
-    ETROC1_TDCReg1.set_TDC_offset(0x01)
-    ETROC1_TDCReg1.set_TDC_autoReset(0)
-    ETROC1_TDCReg1.set_Clk320M_enableRx(0)
-    ETROC1_TDCReg1.set_Clk1G28_enableRx(0)
-    ETROC1_TDCReg1.set_Pulse_enableRx(0)
+
+    ## GRO Test Contorl
+    ETROC1_TDCReg1.set_GRO_Start(1)
+    ETROC1_TDCReg1.set_GRO_TOA_CK(0)
+    ETROC1_TDCReg1.set_GRO_TOT_CK(1)
     ETROC1_TDCReg1.set_GROout_disCMLDriverBISA(1)
-    print(ETROC1_TDCReg1.get_config_vector())
+    ETROC1_TDCReg1.set_GROout_AmplSel(1)
+
+    ## Clock 40MHz TX output setting
+    ETROC1_TDCReg1.set_Clk40Mout_AmplSel(7)
+
+    ## Data output setting
+    ETROC1_TDCReg1.set_Dataout_AmplSel(7)
+    ETROC1_TDCReg1.set_Dataout_Sel(1)
+
+    ## Strobe pulse setting
+    ETROC1_TDCReg1.set_Pulse_Sel(3)
+
+    ## Clock 320M pulse setting
+    ETROC1_TDCReg1.set_Clk320M_Psel(1)
+
+    ## DMRO setting
+    ETROC1_TDCReg1.set_DMRO_testMode(0)
+    ETROC1_TDCReg1.set_DMRO_enable(1)           ## enable Scrambler
+    Enable_FPGA_Descrablber(1)
+
+    ETROC1_TDCReg1.set_DMRO_resetn(1)
+    ETROC1_TDCReg1.set_DMRO_revclk(0)
+    ## TDC setting
+    ETROC1_TDCReg1.set_TDC_resetn(1)
+    ETROC1_TDCReg1.set_TDCRawData_Sel(0)
+
+    ETROC1_TDCReg1.set_TDC_timeStampMode(0)
+
+    reg_val = ETROC1_TDCReg1.get_config_vector()
+    print("I2C write in data:")
+    print(reg_val)
+    for i in range(len(reg_val)):
+        iic_write(1, slave_addr, 0, i, reg_val[i])
+    iic_read_val = []
+    for i in range(len(reg_val)):
+        iic_read_val += [iic_read(0, slave_addr, 1, i)]
+    print("I2C read back data:")
+    print(iic_read_val)
     print("Ok!")
+
+    readonly_reg = [0x21, 0x22, 0x23, 0x24]
+    readonly_val = []
+    for i in range(len(readonly_reg)):
+        readonly_val += [iic_read(0, slave_addr, 1, readonly_reg[i])]
+    print(readonly_val)
+    TOA_Code = (readonly_val[2] & 0x7) << 7 | ((readonly_val[1] >> 1) & 0x7f)
+    TOT_Code = (readonly_val[1] & 0x1) << 7 | readonly_val[0]
+    Cal_Code = (readonly_val[3] & 0x1f) << 5 | (readonly_val[2] >> 3) & 0x1f
+    print("TOA_Code: %d"%TOA_Code)
+    print("TOT_Code: %d"%TOT_Code)
+    print("Cal_Code: %d"%Cal_Code)
+    # print("TOT_Code: %s"%TOT_Code)
+    # print("Cal_Code: %s"%Cal_Code)
+    data_out = []
+    data_out = test_ddr3()
+    # print(data_out)
+    with open("TDC_Converted_Data.dat",'w') as infile:
+        for i in range(len(data_out)):
+            TDC_data = []
+            for j in range(30):
+                TDC_data += [((data_out[i] >> j) & 0x1)]
+            TOT_Code2 = TDC_data[0:9]
+            TOA_Code2 = TDC_data[9:19]
+            Cal_Code2 = TDC_data[19:29]
+            hitFlag = TDC_data[29]
+            TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
+            TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
+            Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
+            # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
+            infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
+
 #--------------------------------------------------------------------------#
 ## if statement
 if __name__ == "__main__":
-	# s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	#initial socket
-	# s.connect((hostname, port))								#connect socket
-	# cmd_interpret = command_interpret(s)					#Class instance
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	#initial socket
+	s.connect((hostname, port))								#connect socket
+	cmd_interpret = command_interpret(s)					#Class instance
 	main()													#execute main function
-	# s.close()												#close socket
+	s.close()												#close socket
