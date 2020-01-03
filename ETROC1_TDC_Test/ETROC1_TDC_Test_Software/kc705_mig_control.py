@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import sys
 import copy
@@ -10,6 +10,7 @@ import heartrate
 from command_interpret import *
 from ETROC1_TDCReg import *
 import numpy as np
+from command_interpret import *
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
