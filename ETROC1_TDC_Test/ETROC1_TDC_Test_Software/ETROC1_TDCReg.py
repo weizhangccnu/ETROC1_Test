@@ -24,7 +24,7 @@ class ETROC1_TDCReg(object):
         'TDC_autoReset'                 :   0,
         'Clk40Mout_AmplSel'             :   0x1,
         'TDC_enableMon'                 :   0,
-        'TDC_timeStampMode'             :   1,
+        'TDC_timeStampMode'             :   0,
         'Dataout_AmplSel'               :   0x1,
         'DMRO_testmode'                 :   0,
         'DMRO_enable'                   :   1,
@@ -113,7 +113,7 @@ class ETROC1_TDCReg(object):
         self._regMap['TDC_timeStampMode'] = 0x1 & val
 
     def set_Dataout_AmplSel(self, val):                                         # Dataout TX amplitude select
-        self._regMap['Dataout_AmplSel'] = 0x1 & val
+        self._regMap['Dataout_AmplSel'] = 0x7 & val
 
     def set_DMRO_testMode(self, val):                                           # DMRO testMode select, 1: testMode 0: normal mode
         self._regMap['DMRO_testmode'] = 0x1 & val
