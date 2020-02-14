@@ -103,12 +103,22 @@ class ETROC1_SinglePixelReg(object):
     def set_TDC_timeStampMode(self, val):                           # 1: Cal = Cal-TOA, 0: Cal=Cal
         self._regMap['TDC_timeStampMode'] = 0x1 & val
 
+    def set_TDC_level(self, val):                                   # 1: bubble tolerance level 
+        self._regMap['TDC_level'] = 0x7 & val
+
+    def set_TDC_offset(self, val):                                   # 1: bubble tolerance level 
+        self._regMap['TDC_offset'] = 0x7f & val
+
+
+
+
 
     ## get I2C register value
     def get_config_vector(self):
         reg_value = []
         reg_value += [hex(self._regMap['TDC_timeStampMode'] << 7 | self._regMap['TDC_testMode'] << 6 | self._regMap['TDC_selRawCode'] << 5 | self._regMap['TDC_resetn'] << 4 | self._regMap['TDC_polaritySel'] << 3 | self._regMap['TDC_enable'] << 2 | self._regMap['TDC_enableMon'] << 1 | self._regMap['TDC_autoReset'])]
-        reg_value += [hex(self._regMap['TDC_level'] << 3 | self._regMap['TDC_offset'])]
+        reg_value += [hex(self._regMap['TDC_level'])]
+        reg_value += [hex(self._regMap['TDC_offset'])]
         reg_value += [hex(self._regMap['dllCPCurrent'] << 3 | self._regMap['dllCapReset'] << 2 | self._regMap['dllForceDown'] << 1 | self._regMap['dllEnable'])]
         
         return reg_value
@@ -118,6 +128,8 @@ def main():
    ETROC1_SinglePixelReg1.set_TDC_timeStampMode(1)
    ETROC1_SinglePixelReg1.set_TDC_autoReset(0)
    ETROC1_SinglePixelReg1.set_TDC_enable(0)
+   ETROC1_SinglePixelReg1.set_TDC_offset(127)
+   ETROC1_SinglePixelReg1.set_TDC_level(6)
 
    print(ETROC1_SinglePixelReg1.get_config_vector())
 
