@@ -1,3 +1,4 @@
 ## ETROC1_Test
-This repository is used to store ETROC1 Test related document, firmware, and software
-
+This directory is used to store ETROC1 Test related document, firmware, and software
+## ETROC1 SinglePixel  
+This directory is used to store ETROC1 Test related document, firmware, and software
