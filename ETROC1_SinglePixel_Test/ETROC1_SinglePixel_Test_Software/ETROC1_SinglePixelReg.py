@@ -3,7 +3,7 @@
 import copy
 '''
 @author: Wei Zhang
-@date: 2020-02-05 
+@date: Feb 15, 2020
 ETROC1 Single Pixel class
 '''
 #--------------------------------------------------------------------------#
