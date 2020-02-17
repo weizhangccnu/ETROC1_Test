@@ -8,7 +8,7 @@ import struct
 import socket
 import heartrate
 from command_interpret import *
-from ETROC1_TDCReg import *
+from ETROC1_SinglePixelReg import *
 import numpy as np
 from command_interpret import *
 import matplotlib.pyplot as plt
@@ -108,72 +108,26 @@ def iic_read(mode, slave_addr, wr, reg_addr):
     return cmd_interpret.read_status_reg(0) & 0xff
 #--------------------------------------------------------------------------#
 ## Enable FPGA Descrambler
-def Enable_FPGA_Descrablber(val):
-    print("val: %d"%val)
+def Enable_FPGA_Descramblber(val):
+    if val==1:
+        print("Enable FPGA Descrambler: %d"%val)
+    else:
+        print("")
     cmd_interpret.write_config_reg(14, 0x0001 & val)       # write enable
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
-    slave_addr = 0x23                                       # I2C slave address
+    slave_addr = 0x4E                                      # I2C slave address
     reg_val = []
-    ETROC1_TDCReg1 = ETROC1_TDCReg()
-
-    ## Reset TDC
-    ETROC1_TDCReg1.set_TDC_resetn(0)
-
-    reg_val = ETROC1_TDCReg1.get_config_vector()
+    ETROC1_SinglePixelReg1 = ETROC1_SinglePixelReg()
+    reg_val = ETROC1_SinglePixelReg1.get_config_vector()
+    
     print("I2C write in data:")
     print(reg_val)
     for i in range(len(reg_val)):
-        iic_write(1, slave_addr, 0, i, reg_val[i])
+        iic_write(1, slave_addr, 0, i, int(reg_val[i], 16))
     time.sleep(0.1)
 
-    ## GRO Test Contorl
-    ETROC1_TDCReg1.set_GRO_Start(1)
-    ETROC1_TDCReg1.set_GRO_TOA_CK(1)
-    ETROC1_TDCReg1.set_GRO_TOT_CK(1)
-    ETROC1_TDCReg1.set_GROout_disCMLDriverBISA(0)
-    ETROC1_TDCReg1.set_GROout_AmplSel(7)
-    ETROC1_TDCReg1.set_GRO_TOARST_N(1)
-    ETROC1_TDCReg1.set_GRO_TOTRST_N(1)
-
-    ## Clock 40MHz TX output setting
-    ETROC1_TDCReg1.set_Clk40Mout_AmplSel(7)
-    ETROC1_TDCReg1.set_Pulse_enableRx(1)
-
-    ## Data output setting
-    ETROC1_TDCReg1.set_Dataout_AmplSel(7)
-    ETROC1_TDCReg1.set_Dataout_Sel(1)
-
-    ## Strobe pulse setting
-    ETROC1_TDCReg1.set_Pulse_Sel(0x03)
-
-    ## Clock 320M pulse setting
-    # ETROC1_TDCReg1.set_Clk320M_Psel(1)
-    # ETROC1_TDCReg1.set_Clk40M_Psel(1)
-    ## DMRO setting
-    ETROC1_TDCReg1.set_DMRO_testMode(0)
-    ETROC1_TDCReg1.set_DMRO_enable(1)           ## enable Scrambler
-    Enable_FPGA_Descrablber(1)                  ## Enable FPGA Firmware Descrambler
-
-    ETROC1_TDCReg1.set_DMRO_resetn(1)
-    ETROC1_TDCReg1.set_DMRO_revclk(0)
-    ## TDC setting
-    ETROC1_TDCReg1.set_TDC_resetn(1)
-    ETROC1_TDCReg1.set_TDC_testMode(0)
-    ETROC1_TDCReg1.set_TDC_autoReset(0)
-    ETROC1_TDCReg1.set_TDC_enable(1)
-    # ETROC1_TDCReg1.set_TDC_level(3)s
-    ETROC1_TDCReg1.set_TDCRawData_Sel(0)
-
-    ETROC1_TDCReg1.set_TDC_polaritySel(1)       ## 1: low power mode 0: high power mode
-    ETROC1_TDCReg1.set_TDC_timeStampMode(0)
-
-    reg_val = ETROC1_TDCReg1.get_config_vector()
-    print("I2C write in data:")
-    print(reg_val)
-    for i in range(len(reg_val)):
-        iic_write(1, slave_addr, 0, i, reg_val[i])
     iic_read_val = []
     for i in range(len(reg_val)):
         iic_read_val += [iic_read(0, slave_addr, 1, i)]
@@ -181,40 +135,29 @@ def main():
     print(iic_read_val)
     print("Ok!")
 
-    readonly_reg = [0x21, 0x22, 0x23, 0x24]
-    readonly_val = []
-    for i in range(len(readonly_reg)):
-        readonly_val += [iic_read(0, slave_addr, 1, readonly_reg[i])]
-    print(readonly_val)
-    TOA_Code = (readonly_val[2] & 0x7) << 7 | ((readonly_val[1] >> 1) & 0x7f)
-    TOT_Code = (readonly_val[1] & 0x1) << 8 | readonly_val[0]
-    Cal_Code = (readonly_val[3] & 0x1f) << 5 | (readonly_val[2] >> 3) & 0x1f
-    print("TOA_Code: %d"%TOA_Code)
-    print("TOT_Code: %d"%TOT_Code)
-    print("Cal_Code: %d"%Cal_Code)
 
-    for k in range(1):
-        print("Fetching NO.%01d file..."%k)
-        data_out = [0]
-        data_out = test_ddr3(400)                          ## num: The total fetch data num * 50000
-        # print(data_out)
-        with open("./20200211_Test_Results/TDC_Converted_Data_20000000P_B4_Pulse=0x03_VDD1V2_10M0000625Hz_%01d.dat"%(k),'w') as infile:
-            for i in range(len(data_out)):
-                TDC_data = []
-                for j in range(30):
-                    TDC_data += [((data_out[i] >> j) & 0x1)]
-                hitFlag = TDC_data[29]
-                TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
-                TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
-                Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
-                # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
-                infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
+    # for k in range(1):
+    #     print("Fetching NO.%01d file..."%k)
+    #     data_out = [0]
+    #     data_out = test_ddr3(400)                          ## num: The total fetch data num * 50000
+    #     # print(data_out)
+    #     with open("./20200211_Test_Results/TDC_Converted_Data_20000000P_B4_Pulse=0x03_VDD1V2_10M0000625Hz_%01d.dat"%(k),'w') as infile:
+    #         for i in range(len(data_out)):
+    #             TDC_data = []
+    #             for j in range(30):
+    #                 TDC_data += [((data_out[i] >> j) & 0x1)]
+    #             hitFlag = TDC_data[29]
+    #             TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
+    #             TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
+    #             Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
+    #             # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
+    #             infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
 
 #--------------------------------------------------------------------------#
 ## if statement
 if __name__ == "__main__":
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	#initial socket
-	s.connect((hostname, port))								#connect socket
+	# s.connect((hostname, port))								#connect socket
 	cmd_interpret = command_interpret(s)					#Class instance
 	main()													#execute main function
-	s.close()												#close socket
+	# s.close()												#close socket

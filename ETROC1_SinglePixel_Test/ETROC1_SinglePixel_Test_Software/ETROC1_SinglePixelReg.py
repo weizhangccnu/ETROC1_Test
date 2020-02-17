@@ -283,8 +283,8 @@ class ETROC1_SinglePixelReg(object):
         reg_value += [hex(self._regMap['OE_DMRO'] << 6 | self._regMap['PD_DACDiscri'] << 5 | self._regMap['Dis_VTHInOut'] << 4 | self._regMap['EN_DiscriOut'] << 3 | self._regMap['EN_QInj'] << 2 | self._regMap['VTHIn9_8'])]
         return reg_value
 
-def main():
-   ETROC1_SinglePixelReg1 = ETROC1_SinglePixelReg()
+# def main():
+#    ETROC1_SinglePixelReg1 = ETROC1_SinglePixelReg()
    # ETROC1_SinglePixelReg1.set_TDC_timeStampMode(1)
    # ETROC1_SinglePixelReg1.set_TDC_autoReset(0)
    # ETROC1_SinglePixelReg1.set_TDC_enable(0)
@@ -296,7 +296,7 @@ def main():
    # ETROC1_SinglePixelReg1.set_Dataout_disBIAS(0)
    # ETROC1_SinglePixelReg1.set_Dataout_AmplSel(2)
    # ETROC1_SinglePixelReg1.set_VTHIn7_0(255)
-   print(ETROC1_SinglePixelReg1.get_config_vector())
-
-if __name__ == "__main__":
-    main()
+#    print(ETROC1_SinglePixelReg1.get_config_vector())
+#
+# if __name__ == "__main__":
+#     main()

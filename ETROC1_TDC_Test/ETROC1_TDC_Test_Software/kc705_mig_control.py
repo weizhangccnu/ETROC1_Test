@@ -47,26 +47,28 @@ def read_data_from_ddr3(rd_stop_addr):
     cmd_interpret.write_pulse_reg(0x0020)           # reading start
 #--------------------------------------------------------------------------#
 ## test ddr3
-def test_ddr3():
+def test_ddr3(data_num):
     cmd_interpret.write_config_reg(0, 0x0000)       # written disable
     cmd_interpret.write_pulse_reg(0x0040)           # reset ddr3 control logic
+    time.sleep(0.01)
     cmd_interpret.write_pulse_reg(0x0004)           # reset ddr3 data fifo
+    time.sleep(0.01)
     print("sent pulse!")
 
     cmd_interpret.write_config_reg(0, 0x0001)       # written enable
 
-    write_data_into_ddr3(1, 0x0000000, 0x0600000)   # set write begin address and post trigger address and wrap around
+    write_data_into_ddr3(1, 0x0000000, 0x6000000)   # set write begin address and post trigger address and wrap around
     cmd_interpret.write_pulse_reg(0x0008)           # writing start
     cmd_interpret.write_pulse_reg(0x0010)           # writing stop
 
     time.sleep(1)
     cmd_interpret.write_config_reg(0, 0x0000)       # write enable
-    time.sleep(2)
-    read_data_from_ddr3(0x0600000)                  # set read begin address
+    time.sleep(3)
+    read_data_from_ddr3(0x6000000)                  # set read begin address
 
     data_out = []
     ## memoryview usage
-    for i in range(200):
+    for i in range(data_num):
         data_out += cmd_interpret.read_data_fifo(50000)           # reading start
     return data_out
 #--------------------------------------------------------------------------#
@@ -116,37 +118,55 @@ def main():
     reg_val = []
     ETROC1_TDCReg1 = ETROC1_TDCReg()
 
+    ## Reset TDC
+    ETROC1_TDCReg1.set_TDC_resetn(0)
+
+    reg_val = ETROC1_TDCReg1.get_config_vector()
+    print("I2C write in data:")
+    print(reg_val)
+    for i in range(len(reg_val)):
+        iic_write(1, slave_addr, 0, i, reg_val[i])
+    time.sleep(0.1)
+
     ## GRO Test Contorl
     ETROC1_TDCReg1.set_GRO_Start(1)
-    ETROC1_TDCReg1.set_GRO_TOA_CK(0)
+    ETROC1_TDCReg1.set_GRO_TOA_CK(1)
     ETROC1_TDCReg1.set_GRO_TOT_CK(1)
-    ETROC1_TDCReg1.set_GROout_disCMLDriverBISA(1)
-    ETROC1_TDCReg1.set_GROout_AmplSel(1)
+    ETROC1_TDCReg1.set_GROout_disCMLDriverBISA(0)
+    ETROC1_TDCReg1.set_GROout_AmplSel(6)
+    ETROC1_TDCReg1.set_GRO_TOARST_N(1)
+    ETROC1_TDCReg1.set_GRO_TOTRST_N(1)
 
     ## Clock 40MHz TX output setting
     ETROC1_TDCReg1.set_Clk40Mout_AmplSel(7)
+    ETROC1_TDCReg1.set_Pulse_enableRx(1)
 
     ## Data output setting
     ETROC1_TDCReg1.set_Dataout_AmplSel(7)
     ETROC1_TDCReg1.set_Dataout_Sel(1)
 
     ## Strobe pulse setting
-    ETROC1_TDCReg1.set_Pulse_Sel(3)
+    ETROC1_TDCReg1.set_Pulse_Sel(0x03)
 
     ## Clock 320M pulse setting
-    ETROC1_TDCReg1.set_Clk320M_Psel(1)
-
+    # ETROC1_TDCReg1.set_Clk320M_Psel(1)
+    # ETROC1_TDCReg1.set_Clk40M_Psel(1)
     ## DMRO setting
     ETROC1_TDCReg1.set_DMRO_testMode(0)
     ETROC1_TDCReg1.set_DMRO_enable(1)           ## enable Scrambler
-    Enable_FPGA_Descrablber(1)
+    Enable_FPGA_Descrablber(1)                  ## Enable FPGA Firmware Descrambler
 
     ETROC1_TDCReg1.set_DMRO_resetn(1)
     ETROC1_TDCReg1.set_DMRO_revclk(0)
     ## TDC setting
     ETROC1_TDCReg1.set_TDC_resetn(1)
+    ETROC1_TDCReg1.set_TDC_testMode(0)
+    ETROC1_TDCReg1.set_TDC_autoReset(0)
+    ETROC1_TDCReg1.set_TDC_enable(1)
+    # ETROC1_TDCReg1.set_TDC_level(3)s
     ETROC1_TDCReg1.set_TDCRawData_Sel(0)
 
+    ETROC1_TDCReg1.set_TDC_polaritySel(1)       ## 1: low power mode 0: high power mode
     ETROC1_TDCReg1.set_TDC_timeStampMode(0)
 
     reg_val = ETROC1_TDCReg1.get_config_vector()
@@ -167,30 +187,28 @@ def main():
         readonly_val += [iic_read(0, slave_addr, 1, readonly_reg[i])]
     print(readonly_val)
     TOA_Code = (readonly_val[2] & 0x7) << 7 | ((readonly_val[1] >> 1) & 0x7f)
-    TOT_Code = (readonly_val[1] & 0x1) << 7 | readonly_val[0]
+    TOT_Code = (readonly_val[1] & 0x1) << 8 | readonly_val[0]
     Cal_Code = (readonly_val[3] & 0x1f) << 5 | (readonly_val[2] >> 3) & 0x1f
     print("TOA_Code: %d"%TOA_Code)
     print("TOT_Code: %d"%TOT_Code)
     print("Cal_Code: %d"%Cal_Code)
-    # print("TOT_Code: %s"%TOT_Code)
-    # print("Cal_Code: %s"%Cal_Code)
-    data_out = []
-    data_out = test_ddr3()
-    # print(data_out)
-    with open("TDC_Converted_Data.dat",'w') as infile:
-        for i in range(len(data_out)):
-            TDC_data = []
-            for j in range(30):
-                TDC_data += [((data_out[i] >> j) & 0x1)]
-            TOT_Code2 = TDC_data[0:9]
-            TOA_Code2 = TDC_data[9:19]
-            Cal_Code2 = TDC_data[19:29]
-            hitFlag = TDC_data[29]
-            TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
-            TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
-            Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
-            # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
-            infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
+
+    for k in range(1):
+        print("Fetching NO.%01d file..."%k)
+        data_out = [0]
+        data_out = test_ddr3(200)                          ## num: The total fetch data num * 50000
+        # print(data_out)
+        with open("./20200214_Test_Results/TDC_Converted_Data_10000000P_B4_Pulse=0x03_VDD0V75_10M0000625_%01d.dat"%(k),'w') as infile:
+            for i in range(len(data_out)):
+                TDC_data = []
+                for j in range(30):
+                    TDC_data += [((data_out[i] >> j) & 0x1)]
+                hitFlag = TDC_data[29]
+                TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
+                TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
+                Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
+                # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
+                infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
 
 #--------------------------------------------------------------------------#
 ## if statement
