@@ -1,6 +1,7 @@
 ## 1. These python scripts are used for testing the ETROC1 TDC chip
-  - The **command\_interpret.py** file is a class for sockect communication
-  - The **kc705\_mig\_control.py** file includes all kinds of functions such as I2C write/read, DDR3 data storage, Ethernet communication.
+  - The **command\_interp.py** file is a class for sockect communication
+  - The **ETROC1_SinglePixelReg.py** file is a class for ETROC1 Single Pixel I2C register.
+  - The **ETROC1_SinglePixelReg_Control.py** file includes all kinds of functions such as I2C write/read, DDR3 data storage, Ethernet communication.
 
 ## 2. Hardware platform
   - The FPGA is Xilinx KC705 EVB and the FPGA socket address is 192.168.2.x, The x is configurable via switch (DIP switch SW11 positions 1 and 2 control the value of `x`, the positions 1 and 2 are **ON**, `x=3`, the position 1 is **ON** and the position 2 is **OFF**, `x=1`, and so forth) and its value ranges from 0 to 3 and the port number is fixed to 1024. [Schematic of KC705 EVB](https://www.xilinx.com/support/documentation/boards_and_kits/kc705_Schematic_xtp132_rev1_1.pdf)
@@ -37,13 +38,13 @@
   - Open windows doc terminal and using `ping 192.168.2.3` command to verify the Ethernet connection is working or not. If the Ethernet connection is wroking, all sent package will be received, otherwise not.
   - If the Ethernet connection is well, The RX and TX identification LED near the Ethernet socket will blink when execute the command of `ping 192.168.2.3`.
 
-**3.** Provide reference clock to GTX. 
+**3.** Provide reference clock to GTX.
   - Using a USB cable connects the PC with Si5338-EVB and Using Clockbuilder Pro configures Si5338-EVB to generat a 160 MHz differential output clock at CLK0A/CLK0B SMA connector.  
   - Between the Si5338-EVB and KC-705 EVB is connected by a piar of coxial cable. The **J15** and **J16** are the GTX reference clock input SMAs. Before connecting the reference clock, you should make sure that the clock frequency is 160 MHz.
-  
+
 **4.** Verify I2C write and read functions.
   - Firstly, we should connect ETROC1 TDC test board I2C interface to the FPGA according to the FPGA I2C interface mapping figure.
   - Using `iic_read(mode, slave_addr, wr, reg_addr)` function read the register default value of ETROC1 TDC I2C controller and compare the read out default value with the set default value.
-  - Using `iic_write(mode, slave_addr, wr, reg_addr, data)` function write some register value and Using `iic_read(mode, slave_addr, wr, reg_addr)` function read back this register value at once. Compare write in register data with read out data from register. If the read out data is identical with the write in data, it demonstrate that the I2C write and read functions are correct. 
+  - Using `iic_write(mode, slave_addr, wr, reg_addr, data)` function write some register value and Using `iic_read(mode, slave_addr, wr, reg_addr)` function read back this register value at once. Compare write in register data with read out data from register. If the read out data is identical with the write in data, it demonstrate that the I2C write and read functions are correct.
 
 **5.** Verify DDR3 data fecthing function.
