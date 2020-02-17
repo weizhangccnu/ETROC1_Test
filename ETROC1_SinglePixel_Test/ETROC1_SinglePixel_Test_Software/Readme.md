@@ -1,5 +1,5 @@
 ## 1. These python scripts are used for testing the ETROC1 TDC chip
-  - The **command\_interp.py** file is a class for sockect communication
+  - The **command\_interp.py** file is a class for socket communication.
   - The **ETROC1_SinglePixelReg.py** file is a class for ETROC1 Single Pixel I2C register.
   - The **ETROC1_SinglePixelReg_Control.py** file includes all kinds of functions such as I2C write/read, DDR3 data storage, Ethernet communication.
 
