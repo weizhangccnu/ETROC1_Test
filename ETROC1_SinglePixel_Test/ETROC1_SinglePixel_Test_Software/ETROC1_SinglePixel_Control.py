@@ -117,19 +117,19 @@ def Enable_FPGA_Descramblber(val):
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
-    slave_addr = 0x4E                                      # I2C slave address
+    slave_addr = 0x4E                                               # I2C slave address
     reg_val = []
-    ETROC1_SinglePixelReg1 = ETROC1_SinglePixelReg()
-    reg_val = ETROC1_SinglePixelReg1.get_config_vector()
-    
+    ETROC1_SinglePixelReg1 = ETROC1_SinglePixelReg()                # New a class
+    reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
+
     print("I2C write in data:")
     print(reg_val)
-    for i in range(len(reg_val)):
+    for i in range(len(reg_val)):                                   # Write data into I2C register
         iic_write(1, slave_addr, 0, i, int(reg_val[i], 16))
     time.sleep(0.1)
 
     iic_read_val = []
-    for i in range(len(reg_val)):
+    for i in range(len(reg_val)):                                   # Read back I2C register value
         iic_read_val += [iic_read(0, slave_addr, 1, i)]
     print("I2C read back data:")
     print(iic_read_val)
@@ -157,7 +157,7 @@ def main():
 ## if statement
 if __name__ == "__main__":
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	#initial socket
-	# s.connect((hostname, port))								#connect socket
+	s.connect((hostname, port))								#connect socket
 	cmd_interpret = command_interpret(s)					#Class instance
 	main()													#execute main function
-	# s.close()												#close socket
+	s.close()												#close socket
