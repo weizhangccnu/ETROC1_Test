@@ -48,3 +48,4 @@
   - Using `iic_write(mode, slave_addr, wr, reg_addr, data)` function write some register value and Using `iic_read(mode, slave_addr, wr, reg_addr)` function read back this register value at once. Compare write in register data with read out data from register. If the read out data is identical with the write in data, it demonstrate that the I2C write and read functions are correct.
 
 **5.** Verify DDR3 data fecthing function.
+  - The DDR3 capacity is 1G Byte.
