@@ -110,9 +110,9 @@ def iic_read(mode, slave_addr, wr, reg_addr):
 ## Enable FPGA Descrambler
 def Enable_FPGA_Descramblber(val):
     if val==1:
-        print("Enable FPGA Descrambler: %d"%val)
+        print("Enable FPGA Descrambler")
     else:
-        print("")
+        print("Disable FPGA Descrambler")
     cmd_interpret.write_config_reg(14, 0x0001 & val)       # write enable
 #--------------------------------------------------------------------------#
 ## main functionl
