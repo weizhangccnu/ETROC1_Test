@@ -1,7 +1,7 @@
 ## 1. These python scripts are used for testing the ETROC1 Single Pixel chip
   - The **command\_interp.py** file is a class for socket communication.
-  - The **ETROC1_SinglePixelReg.py** file is a class for ETROC1 Single Pixel I2C register.
-  - The **ETROC1_SinglePixelReg_Control.py** file includes all kinds of functions such as I2C write/read, DDR3 data storage, Ethernet communication.
+  - The **ETROC1_ArrayReg.py** file is a class for ETROC1 Single Pixel I2C register.
+  - The **ETROC1_ArrayReg_Control.py** file includes all kinds of functions such as I2C write/read, DDR3 data storage, Ethernet communication.
 
 ## 2. Hardware platform
   - The FPGA is Xilinx KC705 EVB and the FPGA socket address is 192.168.2.x, The x is configurable via switch (DIP switch SW11 positions 1 and 2 control the value of `x`, the positions 1 and 2 are **ON**, `x=3`, the position 1 is **ON** and the position 2 is **OFF**, `x=1`, and so forth) and its value ranges from 0 to 3 and the port number is fixed to 1024. [Schematic of KC705 EVB](https://www.xilinx.com/support/documentation/boards_and_kits/kc705_Schematic_xtp132_rev1_1.pdf)
