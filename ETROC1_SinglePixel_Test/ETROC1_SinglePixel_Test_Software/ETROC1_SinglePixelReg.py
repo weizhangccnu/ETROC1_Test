@@ -296,7 +296,7 @@ class ETROC1_SinglePixelReg(object):
    # ETROC1_SinglePixelReg1.set_Dataout_disBIAS(0)
    # ETROC1_SinglePixelReg1.set_Dataout_AmplSel(2)
    # ETROC1_SinglePixelReg1.set_VTHIn7_0(255)
-#    print(ETROC1_SinglePixelReg1.get_config_vector())
+#   print(ETROC1_SinglePixelReg1.get_config_vector())
 #
-# if __name__ == "__main__":
-#     main()
+#if __name__ == "__main__":
+#    main()
