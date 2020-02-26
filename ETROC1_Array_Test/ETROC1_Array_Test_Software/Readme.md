@@ -1,4 +1,4 @@
-## 1. These python scripts are used for testing the ETROC1 Single Pixel chip
+## 1. These python scripts are used for testing the ETROC1 Array chip
   - The **command\_interp.py** file is a class for socket communication.
   - The **ETROC1_ArrayReg.py** file is a class for ETROC1 Single Pixel I2C register.
   - The **ETROC1_ArrayReg_Control.py** file includes all kinds of functions such as I2C write/read, DDR3 data storage, Ethernet communication.
