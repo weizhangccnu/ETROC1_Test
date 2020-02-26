@@ -25,7 +25,7 @@ class ETROC1_ArrayReg(object):
         'EN_QInj15_8'                   :   0x00,
         'OE_DMRO_Row'                   :   0x1,
         'DMRO_Col'                      :   0x0,
-        'RO_SEL'                        :   0x0,
+        'RO_SEL'                        :   0,
         'PD_DACDiscri7_0'               :   0x00,
         'PD_DACDiscri15_8'              :   0x00,
         'VTHIn7_0'                      :   0x00,
