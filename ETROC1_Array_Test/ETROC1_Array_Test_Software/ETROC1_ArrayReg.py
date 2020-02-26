@@ -12,6 +12,7 @@ ETROC1 Array Pixel class
 class ETROC1_ArrayReg(object):
     ## @var _defaultRegMap default register values
     _defaultRegMap = {
+        ## Slave I2C B
         'CLSel'                         :   0x0,
         'RfSel'                         :   0x2,
         'HysSel'                        :   0xf,
@@ -32,9 +33,24 @@ class ETROC1_ArrayReg(object):
         'VTHIn23_16'                    :   0x08,
         'VTHIn31_24'                    :   0x20,
         'VTHIn39_32'                    :   0x80,
-        
-        }
-    _defaultRegMap = {
+        'VTHIn47_40'                    :   0x00,
+        'VTHIn55_48'                    :   0x02,
+        'VTHIn63_56'                    :   0x08,
+        'VTHIn71_64'                    :   0x20,
+        'VTHIn79_72'                    :   0x80,
+        'VTHIn87_80'                    :   0x00,
+        'VTHIn95_88'                    :   0x02,
+        'VTHIn103_96'                   :   0x08,
+        'VTHIn111_104'                  :   0x20,
+        'VTHIn119_112'                  :   0x80,
+        'VTHIn127_120'                  :   0x00,
+        'VTHIn135_128'                  :   0x02,
+        'VTHIn143_136'                  :   0x08,
+        'VTHIn151_144'                  :   0x20,
+        'VTHIn159_152'                  :   0x80,
+        'ROI7_0'                        :   0xff,
+        'ROI15_8'                       :   0xff,
+        ## Slave I2C B
         'TDC_autoReset'                 :   0,
         'TDC_enableMon'                 :   0,
         'TDC_enable'                    :   1,
@@ -51,7 +67,6 @@ class ETROC1_ArrayReg(object):
         'dllCPCurrent'                  :   0x1,
         'PhaseAdj'                      :   0x0,
         'RefStrSel'                     :   0x3,
-        'DMRO_resetn'                   :   1,
         'DMRO_ENScr'                    :   1,
         'DMRO_revclk'                   :   0,
         'DMRO_reverse'                  :   0,
@@ -82,19 +97,7 @@ class ETROC1_ArrayReg(object):
         'CLKTO_AmplSel'                 :   0x7,
         'CLKTO_disBIAS'                 :   0,
         'Dataout_AmplSel'               :   0x7,
-        'Dataout_disBIAS'               :   0,
-        'CLSel'                         :   0x0,
-        'RfSel'                         :   0x2,
-        'HysSel'                        :   0xf,
-        'IBSel'                         :   0x7,
-        'QSel'                          :   0x6,
-        'VTHIn7_0'                      :   0x0,
-        'VTHIn9_8'                      :   0x2,
-        'EN_QInj'                       :   1,
-        'EN_DiscriOut'                  :   0,
-        'Dis_VTHInOut'                  :   1,
-        'PD_DACDiscri'                  :   0,
-        'OE_DMRO'                       :   1,
+        'Dataout_disBIAS'               :   0
         }
     ## @var register map local to the class
     _regMap = {}
