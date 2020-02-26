@@ -118,103 +118,103 @@ class ETROC1_ArrayReg(object):
         self._regMap['IBSel'] = 0x7 & val
 
     def set_QSel(self, val):                                        # selection of Injection charge, from 1 fC (5'b00000) to 32 fC (5'b11111).
-        self._regMap['QSel'] = 0x1f & value
+        self._regMap['QSel'] = 0x1f & val
 
     def set_Dis_VTHInOut7_0(self, val):                             # Disable threshold voltage input/output of the specified pixel.
-        self._regMap['Dis_VTHInOut7_0'] = 0xff & value
+        self._regMap['Dis_VTHInOut7_0'] = 0xff & val
 
     def set_Dis_VTHInOut15_8(self, val):                            # Disable threshold voltage input/output of the specified pixel.
-        self._regMap['Dis_VTHInOut15_8'] = 0xff & value
+        self._regMap['Dis_VTHInOut15_8'] = 0xff & val
 
     def set_EN_DiscriOut(self, val):                                # Enable the Discriminator output, active high.
-        self._regMap['EN_DiscriOut'] = 0xff & value
+        self._regMap['EN_DiscriOut'] = 0xff & val
 
     def set_EN_QInj7_0(self, val):                                  # Enable the charge injection of the specified pixel, active high.
-        self._regMap['EN_QInj7_0'] = 0xff & value
+        self._regMap['EN_QInj7_0'] = 0xff & val
 
     def set_EN_QInj15_8(self, val):                                 # Enable the charge injection of the specified pixel, active high.
-        self._regMap['EN_QInj15_8'] = 0xff & value
+        self._regMap['EN_QInj15_8'] = 0xff & val
 
     def set_OE_DMRO_Row(self, val):                                 # Output enable of DMRO in rows.
-        self._regMap['OE_DMRO_Row'] = 0xf & value
+        self._regMap['OE_DMRO_Row'] = 0xf & val
 
     def set_DMRO_Col(self, val):                                    # Output enable of DMRO in specified column, 2'b00 : column 0 is selected, 2'b01 : column 1 is selected, 2'b10 : column 2 is selected, 2'b11 : column 3 is selected..
-        self._regMap['DMRO_Col'] = 0x3 & value
+        self._regMap['DMRO_Col'] = 0x3 & val
 
     def set_RO_SEL(self, val):                                      # 1: SRO readout mode enable.; 0: DMRO readout mode enable.
-        self._regMap['RO_SEL'] = 0x1 & value
+        self._regMap['RO_SEL'] = 0x1 & val
 
     def set_PD_DACDiscri7_0(self, val):                             # Power down the DAC and the Discriminator in Pixel
-        self._regMap['PD_DACDiscri7_0'] = 0x1 & value
+        self._regMap['PD_DACDiscri7_0'] = 0x1 & val
 
     def set_PD_DACDiscri15_8(self, val):                            # Power down the DAC and the Discriminator in Pixel
-        self._regMap['PD_DACDiscri15_8'] = 0x1 & value
+        self._regMap['PD_DACDiscri15_8'] = 0x1 & val
 
     def set_VTHIn7_0(self, val):                                    # Discriminator threshold voltage [7:0]
-        self._regMap['VTHIn7_0'] = 0x1 & value
+        self._regMap['VTHIn7_0'] = 0x1 & val
 
     def set_VTHIn15_8(self, val):                                   # Discriminator threshold voltage [15:8]
-        self._regMap['VTHIn15_8'] = 0x1 & value
+        self._regMap['VTHIn15_8'] = 0x1 & val
 
     def set_VTHIn23_16(self, val):                                  # Discriminator threshold voltage [23:16]
-        self._regMap['VTHIn23_16'] = 0x1 & value
+        self._regMap['VTHIn23_16'] = 0x1 & val
 
     def set_VTHIn31_24(self, val):                                  # Discriminator threshold voltage [31:24]
-        self._regMap['VTHIn31_24'] = 0x1 & value
+        self._regMap['VTHIn31_24'] = 0x1 & val
 
     def set_VTHIn39_32(self, val):                                  # Discriminator threshold voltage [39_32]
-        self._regMap['VTHIn39_32'] = 0x1 & value
+        self._regMap['VTHIn39_32'] = 0x1 & val
 
     def set_VTHIn47_40(self, val):                                  # Discriminator threshold voltage [47_40]
-        self._regMap['VTHIn47_40'] = 0x1 & value
+        self._regMap['VTHIn47_40'] = 0x1 & val
 
     def set_VTHIn55_48(self, val):                                  # Discriminator threshold voltage [55_48]
-        self._regMap['VTHIn55_48'] = 0x1 & value
+        self._regMap['VTHIn55_48'] = 0x1 & val
 
     def set_VTHIn63_56(self, val):                                  # Discriminator threshold voltage [63_56]
-        self._regMap['VTHIn63_56'] = 0x1 & value
+        self._regMap['VTHIn63_56'] = 0x1 & val
 
     def set_VTHIn71_64(self, val):                                  # Discriminator threshold voltage [71_64]
-        self._regMap['VTHIn71_64'] = 0x1 & value
+        self._regMap['VTHIn71_64'] = 0x1 & val
 
     def set_VTHIn79_72(self, val):                                  # Discriminator threshold voltage [79_72]
-        self._regMap['VTHIn79_72'] = 0x1 & value
+        self._regMap['VTHIn79_72'] = 0x1 & val
 
     def set_VTHIn87_80(self, val):                                  # Discriminator threshold voltage [87_80]
-        self._regMap['VTHIn87_80'] = 0x1 & value
+        self._regMap['VTHIn87_80'] = 0x1 & val
 
     def set_VTHIn95_88(self, val):                                  # Discriminator threshold voltage [95_88]
-        self._regMap['VTHIn95_88'] = 0x1 & value
+        self._regMap['VTHIn95_88'] = 0x1 & val
 
     def set_VTHIn103_96(self, val):                                 # Discriminator threshold voltage [103_96]
-        self._regMap['VTHIn103_96'] = 0x1 & value
+        self._regMap['VTHIn103_96'] = 0x1 & val
 
     def set_VTHIn111_104(self, val):                                # Discriminator threshold voltage [111_104]
-        self._regMap['VTHIn111_104'] = 0x1 & value
+        self._regMap['VTHIn111_104'] = 0x1 & val
 
     def set_VTHIn119_112(self, val):                                # Discriminator threshold voltage [119_112]
-        self._regMap['VTHIn119_112'] = 0x1 & value
+        self._regMap['VTHIn119_112'] = 0x1 & val
 
     def set_VTHIn127_120(self, val):                                # Discriminator threshold voltage [127_120]
-        self._regMap['VTHIn127_120'] = 0x1 & value
+        self._regMap['VTHIn127_120'] = 0x1 & val
 
     def set_VTHIn135_128(self, val):                                # Discriminator threshold voltage [135_128]
-        self._regMap['VTHIn135_128'] = 0x1 & value
+        self._regMap['VTHIn135_128'] = 0x1 & val
 
     def set_VTHIn143_136(self, val):                                # Discriminator threshold voltage [143_136]
-        self._regMap['VTHIn143_136'] = 0x1 & value
+        self._regMap['VTHIn143_136'] = 0x1 & val
 
     def set_VTHIn151_144(self, val):                                # Discriminator threshold voltage [151_144]
-        self._regMap['VTHIn151_144'] = 0x1 & value
+        self._regMap['VTHIn151_144'] = 0x1 & val
 
     def set_VTHIn159_152(self, val):                                # Discriminator threshold voltage [159_152]
-        self._regMap['VTHIn159_152'] = 0x1 & value
+        self._regMap['VTHIn159_152'] = 0x1 & val
 
     def set_ROI7_0(self, val):                                      # Region of interest, [7:0] low 8-bit vector specified
-        self._regMap['ROI7_0'] = 0x1 & value
+        self._regMap['ROI7_0'] = 0x1 & val
 
-    def set_ROI15_8(self, val):                                      # Region of interest, [15:8] low 8-bit vector specified
-        self._regMap['ROI15_8'] = 0x1 & value
+    def set_ROI15_8(self, val):                                     # Region of interest, [15:8] low 8-bit vector specified
+        self._regMap['ROI15_8'] = 0x1 & val
 
     def set_TDC_autoReset(self, val):                               # 1: TDC auto reset active, 0: TDC auto reset isn't active.
         self._regMap['PD_DACDiscri7_0'] = 0x1 & val
@@ -416,6 +416,10 @@ class ETROC1_ArrayReg(object):
 def main():
    ETROC1_ArrayReg1 = ETROC1_ArrayReg()
    ETROC1_ArrayReg1.set_CLSel(0)
+   ETROC1_ArrayReg1.set_RfSel(2)
+   ETROC1_ArrayReg1.set_HysSel(0xf)
+   ETROC1_ArrayReg1.set_IBSel(7)
+   ETROC1_ArrayReg1.set_QSel(2)
    print(len(ETROC1_ArrayReg1.get_config_vector()))
    print(ETROC1_ArrayReg1.get_config_vector())
 #==========================================================================================#
