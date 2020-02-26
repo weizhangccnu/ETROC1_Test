@@ -9,7 +9,7 @@ ETROC1 Single Pixel class
 #--------------------------------------------------------------------------#
 ## Manage ETROC1 SinglePixel chip's internal registers map
 # Allow combining and disassembling individual registers
-class ETROC1_SinglePixelReg(object):
+class ETROC1_ArrayReg(object):
     ## @var _defaultRegMap default register values
     _defaultRegMap = {
         'TDC_autoReset'                 :   0,
