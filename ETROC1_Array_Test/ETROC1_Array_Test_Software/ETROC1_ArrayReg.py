@@ -12,7 +12,7 @@ ETROC1 Array Pixel class
 class ETROC1_ArrayReg(object):
     ## @var _defaultRegMap default register values
     _defaultRegMap = {
-        ## Slave I2C B
+        ## Slave I2C A
         'CLSel'                         :   0x0,
         'RfSel'                         :   0x2,
         'HysSel'                        :   0xf,
@@ -83,12 +83,12 @@ class ETROC1_ArrayReg(object):
         'Clk320M_invertData'            :   0,
         'Clk320M_enTermination'         :   1,
         'Clk320M_setCommMode'           :   1,
-        'Clk320M_enableRx'              :   1,
+        'Clk320M_enableRx'              :   0,
         'Clk40M_equ'                    :   0x0,
         'Clk40M_invertData'             :   0,
         'Clk40M_enTermination'          :   1,
         'Clk40M_setCommMode'            :   1,
-        'Clk40M_enableRx'               :   1,
+        'Clk40M_enableRx'               :   0,
         'QInj_equ'                      :   0x0,
         'QInj_invertData'               :   0,
         'QInj_enTermination'            :   1,
@@ -103,7 +103,10 @@ class ETROC1_ArrayReg(object):
     _regMap = {}
 
     def __init__(self):
-        self._regMap = copy.deepcopy(self._defaultRegMap)
+        self._regMap = copy.deepcopy(self._defaultRegMap)           # deep copy default register value to _regMap
+
+    def set_CLSel(self, val):                                       # selection of load Capacitance of the preamp first stage..
+        self._regMap['CLSel'] = 0x3 & val
 
     def set_TDC_autoReset(self, val):                               # 1: TDC auto reset active, 0: TDC auto reset isn't active.
         self._regMap['TDC_autoReset'] = 0x1 & val
@@ -152,9 +155,6 @@ class ETROC1_ArrayReg(object):
 
     def set_RefStrSel(self, val):                                   # TDC reference strobe selection
         self._regMap['RefStrSel'] = 0xff & val
-
-    def set_DMRO_resetn(self, val):                                 # TDC reset, low active
-        self._regMap['DMRO_resetn'] = 0x1 & val
 
     def set_DMRO_ENScr(self, val):                                  # 1: Enable DMRO Scrambler, 0: Disable DMRO Scrambler
         self._regMap['DMRO_ENScr'] = 0x1 & val
@@ -291,38 +291,61 @@ class ETROC1_ArrayReg(object):
     ## get I2C register value
     def get_config_vector(self):
         reg_value = []
+
+        ## I2C Slave A
+        reg_value += [hex(self._regMap['HysSel'] << 4 | self._regMap['RfSel'] << 2 | self._regMap['CLSel'])]
+        reg_value += [hex(self._regMap['QSel'] << 3 | self._regMap['IBSel'])]
+        reg_value += [hex(self._regMap['DIS_VTHInOut7_0'])]
+        reg_value += [hex(self._regMap['DIS_VTHInOut15_8'])]
+        reg_value += [hex(self._regMap['EN_DiscriOut'])]
+        reg_value += [hex(self._regMap['EN_QInj7_0'])]
+        reg_value += [hex(self._regMap['EN_QInj15_8'])]
+        reg_value += [hex(self._regMap['RO_SEL'] << 6 | self._regMap['DMRO_COL'] << 4 | self._regMap['OE_DMRO_Row'])]
+        reg_value += [hex(self._regMap['PD_DACDiscri7_0'])]
+        reg_value += [hex(self._regMap['PD_DACDiscri15_8'])]
+        reg_value += [hex(self._regMap['VTHIn7_0'])]
+        reg_value += [hex(self._regMap['VTHIn15_8'])]
+        reg_value += [hex(self._regMap['VTHIn23_16'])]
+        reg_value += [hex(self._regMap['VTHIn31_24'])]
+        reg_value += [hex(self._regMap['VTHIn39_32'])]
+        reg_value += [hex(self._regMap['VTHIn47_40'])]
+        reg_value += [hex(self._regMap['VTHIn55_48'])]
+        reg_value += [hex(self._regMap['VTHIn63_56'])]
+        reg_value += [hex(self._regMap['VTHIn71_64'])]
+        reg_value += [hex(self._regMap['VTHIn79_72'])]
+        reg_value += [hex(self._regMap['VTHIn87_80'])]
+        reg_value += [hex(self._regMap['VTHIn95_88'])]
+        reg_value += [hex(self._regMap['VTHIn103_96'])]
+        reg_value += [hex(self._regMap['VTHIn111_104'])]
+        reg_value += [hex(self._regMap['VTHIn119_112'])]
+        reg_value += [hex(self._regMap['VTHIn127_120'])]
+        reg_value += [hex(self._regMap['VTHIn135_128'])]
+        reg_value += [hex(self._regMap['VTHIn143_136'])]
+        reg_value += [hex(self._regMap['VTHIn151_144'])]
+        reg_value += [hex(self._regMap['VTHIn159_152'])]
+        reg_value += [hex(self._regMap['ROI7_0'])]
+        reg_value += [hex(self._regMap['ROI15_8'])]
+
+        ## I2C Slave B
         reg_value += [hex(self._regMap['TDC_timeStampMode'] << 7 | self._regMap['TDC_testMode'] << 6 | self._regMap['TDC_selRawCode'] << 5 | self._regMap['TDC_resetn'] << 4 | self._regMap['TDC_polaritySel'] << 3 | self._regMap['TDC_enable'] << 2 | self._regMap['TDC_enableMon'] << 1 | self._regMap['TDC_autoReset'])]
         reg_value += [hex(self._regMap['TDC_level'])]
         reg_value += [hex(self._regMap['TDC_offset'])]
         reg_value += [hex(self._regMap['dllCPCurrent'] << 3 | self._regMap['dllCapReset'] << 2 | self._regMap['dllForceDown'] << 1 | self._regMap['dllEnable'])]
         reg_value += [hex(self._regMap['PhaseAdj'])]
         reg_value += [hex(self._regMap['RefStrSel'])]
-        reg_value += [hex(self._regMap['CLKOutSel'] << 7 | self._regMap['TestCLK1'] << 6 | self._regMap['TestCLK0'] << 5 | self._regMap['DMRO_testMode'] << 4 | self._regMap['DMRO_reverse'] << 3 | self._regMap['DMRO_revclk'] << 2 | self._regMap['DMRO_ENScr'] << 1 | self._regMap['DMRO_resetn'])]
+        reg_value += [hex(self._regMap['CLKOutSel'] << 6 | self._regMap['TestCLK1'] << 5 | self._regMap['TestCLK0'] << 4 | self._regMap['DMRO_testMode'] << 3 | self._regMap['DMRO_reverse'] << 2 | self._regMap['DMRO_revclk'] << 1 | self._regMap['DMRO_ENScr'])]
         reg_value += [hex(self._regMap['Clk1G28_enableRx'] << 5 | self._regMap['Clk1G28_setCommMode'] << 4 | self._regMap['Clk1G28_enTermination'] << 3 | self._regMap['Clk1G28_invertData'] << 2  | self._regMap['Clk1G28_equ'])]
         reg_value += [hex(self._regMap['Clk320M_enableRx'] << 5 | self._regMap['Clk320M_setCommMode'] << 4 | self._regMap['Clk320M_enTermination'] << 3 | self._regMap['Clk320M_invertData'] << 2  | self._regMap['Clk320M_equ'])]
         reg_value += [hex(self._regMap['Clk40M_enableRx'] << 5 | self._regMap['Clk40M_setCommMode'] << 4 | self._regMap['Clk40M_enTermination'] << 3 | self._regMap['Clk40M_invertData'] << 2  | self._regMap['Clk40M_equ'])]
         reg_value += [hex(self._regMap['QInj_enableRx'] << 5 | self._regMap['QInj_setCommMode'] << 4 | self._regMap['QInj_enTermination'] << 3 | self._regMap['QInj_invertData'] << 2  | self._regMap['QInj_equ'])]
         reg_value += [hex(self._regMap['Dataout_disBIAS'] << 7 | self._regMap['Dataout_AmplSel'] << 4 | self._regMap['CLKTO_disBIAS'] << 3 | self._regMap['CLKTO_AmplSel'])]
-        reg_value += [hex(self._regMap['HysSel'] << 4 | self._regMap['RfSel'] << 2 | self._regMap['CLSel'])]
-        reg_value += [hex(self._regMap['QSel'] << 3 | self._regMap['IBSel'])]
-        reg_value += [hex(self._regMap['VTHIn7_0'])]
-        reg_value += [hex(self._regMap['OE_DMRO'] << 6 | self._regMap['PD_DACDiscri'] << 5 | self._regMap['Dis_VTHInOut'] << 4 | self._regMap['EN_DiscriOut'] << 3 | self._regMap['EN_QInj'] << 2 | self._regMap['VTHIn9_8'])]
         return reg_value
-
-# def main():
-#    ETROC1_SinglePixelReg1 = ETROC1_SinglePixelReg()
-   # ETROC1_SinglePixelReg1.set_TDC_timeStampMode(1)
-   # ETROC1_SinglePixelReg1.set_TDC_autoReset(0)
-   # ETROC1_SinglePixelReg1.set_TDC_enable(0)
-   # ETROC1_SinglePixelReg1.set_TDC_offset(127)
-   # ETROC1_SinglePixelReg1.set_TDC_level(6)
-   # ETROC1_SinglePixelReg1.set_PhaseAdj(255)
-   # # ETROC1_SinglePixelReg1.set_QInj_enableRx(0)
-   # # ETROC1_SinglePixelReg1.set_QInj_setCommMode(0)
-   # ETROC1_SinglePixelReg1.set_Dataout_disBIAS(0)
-   # ETROC1_SinglePixelReg1.set_Dataout_AmplSel(2)
-   # ETROC1_SinglePixelReg1.set_VTHIn7_0(255)
-#    print(ETROC1_SinglePixelReg1.get_config_vector())
-#
-# if __name__ == "__main__":
-#     main()
+#==========================================================================================#
+def main():
+   ETROC1_ArrayReg1 = ETROC1_ArrayReg()
+   ETROC1_ArrayReg1.set_CLSel(0)
+   print(len(ETROC1_ArrayReg1.get_config_vector()))
+   print(ETROC1_ArrayReg1.get_config_vector())
+#==========================================================================================#
+if __name__ == "__main__":
+    main()
