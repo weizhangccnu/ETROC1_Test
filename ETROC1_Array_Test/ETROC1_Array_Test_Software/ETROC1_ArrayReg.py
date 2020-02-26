@@ -3,14 +3,37 @@
 import copy
 '''
 @author: Wei Zhang
-@date: Feb 15, 2020
-ETROC1 Single Pixel class
+@date: Feb 26, 2020
+ETROC1 Array Pixel class
 '''
 #--------------------------------------------------------------------------#
-## Manage ETROC1 SinglePixel chip's internal registers map
+## Manage ETROC1 Array chip's internal registers map
 # Allow combining and disassembling individual registers
 class ETROC1_ArrayReg(object):
     ## @var _defaultRegMap default register values
+    _defaultRegMap = {
+        'CLSel'                         :   0x0,
+        'RfSel'                         :   0x2,
+        'HysSel'                        :   0xf,
+        'IBSel'                         :   0x7,
+        'QSel'                          :   0x6,
+        'DIS_VTHInOut7_0'               :   0xff,
+        'DIS_VTHInOut15_8'              :   0xff,
+        'EN_DiscriOut'                  :   0x11,
+        'EN_QInj7_0'                    :   0x01,
+        'EN_QInj15_8'                   :   0x00,
+        'OE_DMRO_Row'                   :   0x1,
+        'DMRO_COL'                      :   0x0,
+        'RO_SEL'                        :   0x0,
+        'PD_DACDiscri7_0'               :   0x00,
+        'PD_DACDiscri15_8'              :   0x00,
+        'VTHIn7_0'                      :   0x00,
+        'VTHIn15_8'                     :   0x02,
+        'VTHIn23_16'                    :   0x08,
+        'VTHIn31_24'                    :   0x20,
+        'VTHIn39_32'                    :   0x80,
+        
+        }
     _defaultRegMap = {
         'TDC_autoReset'                 :   0,
         'TDC_enableMon'                 :   0,
