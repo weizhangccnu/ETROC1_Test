@@ -412,16 +412,3 @@ class ETROC1_ArrayReg(object):
         reg_value += [hex(self._regMap['QInj_enableRx'] << 5 | self._regMap['QInj_setCommMode'] << 4 | self._regMap['QInj_enTermination'] << 3 | self._regMap['QInj_invertData'] << 2  | self._regMap['QInj_equ'])]
         reg_value += [hex(self._regMap['Dataout_disBIAS'] << 7 | self._regMap['Dataout_AmplSel'] << 4 | self._regMap['CLKTO_disBIAS'] << 3 | self._regMap['CLKTO_AmplSel'])]
         return reg_value
-#==========================================================================================#
-def main():
-   ETROC1_ArrayReg1 = ETROC1_ArrayReg()
-   ETROC1_ArrayReg1.set_CLSel(0)
-   ETROC1_ArrayReg1.set_RfSel(2)
-   ETROC1_ArrayReg1.set_HysSel(0xf)
-   ETROC1_ArrayReg1.set_IBSel(7)
-   ETROC1_ArrayReg1.set_QSel(2)
-   print(len(ETROC1_ArrayReg1.get_config_vector()))
-   print(ETROC1_ArrayReg1.get_config_vector())
-#==========================================================================================#
-if __name__ == "__main__":
-    main()
