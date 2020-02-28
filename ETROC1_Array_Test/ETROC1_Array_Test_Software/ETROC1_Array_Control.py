@@ -16,8 +16,8 @@ from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 '''
 @author: Wei Zhang
-@date: 2018-03-20
-This script is used for testing ETROC1 TDC chip. The mianly function of this script is I2C write and read, Ethernet communication, instrument control and so on.
+@date: 2018-02-28
+This script is used for testing ETROC1 Array chip. The mianly function of this script is I2C write and read, Ethernet communication, instrument control and so on.
 '''
 hostname = '192.168.2.3'					#FPGA IP address
 port = 1024									#port number
@@ -117,41 +117,21 @@ def Enable_FPGA_Descramblber(val):
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
-    slave_addr = 0x4E                                               # I2C slave address
-    reg_val = []
-    ETROC1_ArrayReg1 = ETROC1_ArrayReg()                # New a class
-    reg_val = ETROC1_ArrayReg1.get_config_vector()            # Get Single Pixel Register default data
+    slaveA_addr = 0x4E                                                  # I2C slave A address
+    slaveB_addr = 0x4E                                                  # I2C slave B address
 
+    reg_val = []
+    ETROC1_ArrayReg1 = ETROC1_ArrayReg()                                # New a class
+    ETROC1_ArrayReg1.set_CLSel(1)
+    # ETROC1_ArrayReg1.set_RfSel(2)
+    # ETROC1_ArrayReg1.set_HysSel(0xf)
+    # ETROC1_ArrayReg1.set_IBSel(7)
+    # ETROC1_ArrayReg1.set_QSel(2)
+    reg_val = ETROC1_ArrayReg1.get_config_vector()                      # Get Array Pixel Register default data
+    print(len(reg_val))
     print("I2C write in data:")
     print(reg_val)
-    #for i in range(len(reg_val)):                                   # Write data into I2C register
-    #    iic_write(1, slave_addr, 0, i, int(reg_val[i], 16))
-    #time.sleep(0.1)
 
-    #iic_read_val = []
-    #for i in range(len(reg_val)):                                   # Read back I2C register value
-    #    iic_read_val += [iic_read(0, slave_addr, 1, i)]
-    #print("I2C read back data:")
-    #print(iic_read_val)
-    #print("Ok!")
-
-
-    # for k in range(1):
-    #     print("Fetching NO.%01d file..."%k)
-    #     data_out = [0]
-    #     data_out = test_ddr3(400)                          ## num: The total fetch data num * 50000
-    #     # print(data_out)
-    #     with open("./20200211_Test_Results/TDC_Converted_Data_20000000P_B4_Pulse=0x03_VDD1V2_10M0000625Hz_%01d.dat"%(k),'w') as infile:
-    #         for i in range(len(data_out)):
-    #             TDC_data = []
-    #             for j in range(30):
-    #                 TDC_data += [((data_out[i] >> j) & 0x1)]
-    #             hitFlag = TDC_data[29]
-    #             TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
-    #             TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
-    #             Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
-    #             # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
-    #             infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
 
 #--------------------------------------------------------------------------#
 ## if statement
