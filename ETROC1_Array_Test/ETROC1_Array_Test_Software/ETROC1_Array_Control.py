@@ -6,6 +6,7 @@ import time
 import visa
 import struct
 import socket
+import winsound
 import heartrate
 from command_interpret import *
 from ETROC1_ArrayReg import *
@@ -117,8 +118,8 @@ def Enable_FPGA_Descramblber(val):
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
-    slaveA_addr = 0x4E                                                  # I2C slave A address
-    slaveB_addr = 0x4E                                                  # I2C slave B address
+    slaveA_addr = 0x03                                                  # I2C slave A address
+    slaveB_addr = 0x7f                                                  # I2C slave B address
 
     reg_val = []
     ETROC1_ArrayReg1 = ETROC1_ArrayReg()                                # New a class
@@ -128,9 +129,32 @@ def main():
     # ETROC1_ArrayReg1.set_IBSel(7)
     # ETROC1_ArrayReg1.set_QSel(2)
     reg_val = ETROC1_ArrayReg1.get_config_vector()                      # Get Array Pixel Register default data
-    print(len(reg_val))
-    print("I2C write in data:")
+
+    ## write data to I2C register one by one
+    print("Write data into I2C slave:")
     print(reg_val)
+    for i in range(len(reg_val)):
+        if i < 32:                                                      # I2C slave A write
+            iic_write(1, slaveA_addr, 0, i, reg_val[i])
+        else:                                                           # I2C slave B write
+            iic_write(1, slaveB_addr, 0, i, reg_val[i])
+
+    ## read back data from I2C register one by one
+    iic_read_val = []
+    for i in range(len(reg_val)):
+        if i < 32:
+            iic_read_val += [iic_read(0, slaveA_addr, 1, i)]            # I2C slave A read
+        else:
+            iic_read_val += [iic_read(0, slaveB_addr, 1, i)]            # I2C slave B read
+    print("I2C read back data:")
+    print(iic_read_val)
+
+    ## compare I2C write in data with I2C read back data
+    if iic_read_val == reg_val:
+        print("Wrote in data matches with read back data!")
+    else:
+        print("Wrote in data doesn't matche with read back data!!!!")
+        winsound.Beep(1000, 500)
 
 
 #--------------------------------------------------------------------------#
