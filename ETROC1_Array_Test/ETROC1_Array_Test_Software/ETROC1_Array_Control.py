@@ -194,8 +194,8 @@ def main():
 #--------------------------------------------------------------------------#
 ## if statement
 if __name__ == "__main__":
-    #s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	#initial socket
-	#s.connect((hostname, port))								#connect socket
-	#cmd_interpret = command_interpret(s)					#Class instance
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	#initial socket
+	s.connect((hostname, port))								#connect socket
+	cmd_interpret = command_interpret(s)					#Class instance
 	main()													#execute main function
-    #s.close()												#close socket
+    s.close()												#close socket
