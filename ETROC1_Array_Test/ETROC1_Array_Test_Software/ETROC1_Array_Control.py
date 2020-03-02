@@ -123,10 +123,10 @@ def main():
     reg_val = []
     ETROC1_ArrayReg1 = ETROC1_ArrayReg()                                # New a class
     ETROC1_ArrayReg1.set_CLSel(1)
-    # ETROC1_ArrayReg1.set_RfSel(2)
-    # ETROC1_ArrayReg1.set_HysSel(0xf)
-    # ETROC1_ArrayReg1.set_IBSel(7)
-    # ETROC1_ArrayReg1.set_QSel(2)
+    ETROC1_ArrayReg1.set_RfSel(2)
+    ETROC1_ArrayReg1.set_HysSel(0xf)
+    ETROC1_ArrayReg1.set_IBSel(7)
+    ETROC1_ArrayReg1.set_QSel(2)
     reg_val = ETROC1_ArrayReg1.get_config_vector()                      # Get Array Pixel Register default data
     print(len(reg_val))
     print("I2C write in data:")
