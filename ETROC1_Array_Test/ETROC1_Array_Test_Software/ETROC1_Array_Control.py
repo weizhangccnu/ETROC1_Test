@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 import sys
 import copy
 import time
 import visa
 import struct
 import socket
+import winsound
+import datetime
 import heartrate
 from command_interpret import *
 from ETROC1_ArrayReg import *
@@ -117,8 +120,8 @@ def Enable_FPGA_Descramblber(val):
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
-    slaveA_addr = 0x4E                                                  # I2C slave A address
-    slaveB_addr = 0x4E                                                  # I2C slave B address
+    slaveA_addr = 0x03                                                  # I2C slave A address
+    slaveB_addr = 0x7f                                                  # I2C slave B address
 
     reg_val = []
     ETROC1_ArrayReg1 = ETROC1_ArrayReg()                                # New a class
@@ -128,10 +131,65 @@ def main():
     ETROC1_ArrayReg1.set_IBSel(7)
     ETROC1_ArrayReg1.set_QSel(2)
     reg_val = ETROC1_ArrayReg1.get_config_vector()                      # Get Array Pixel Register default data
-    print(len(reg_val))
-    print("I2C write in data:")
-    print(reg_val)
 
+    ## write data to I2C register one by one
+    print("Write data into I2C slave:")
+    print(reg_val)
+    for i in range(len(reg_val)):
+        if i < 32:                                                      # I2C slave A write
+            iic_write(1, slaveA_addr, 0, i, reg_val[i])
+        else:                                                           # I2C slave B write
+            iic_write(1, slaveB_addr, 0, i-32, reg_val[i])
+
+    ## read back data from I2C register one by one
+    iic_read_val = []
+    for i in range(len(reg_val)):
+        if i < 32:
+            iic_read_val += [iic_read(0, slaveA_addr, 1, i)]            # I2C slave A read
+        else:
+            iic_read_val += [iic_read(0, slaveB_addr, 1, i-32)]         # I2C slave B read
+    print("I2C read back data:")
+    print(iic_read_val)
+
+    ## compare I2C write in data with I2C read back data
+    if iic_read_val == reg_val:
+        print("Wrote in data matches with read back data!")
+    else:
+        print("Wrote in data doesn't matche with read back data!!!!")
+        winsound.Beep(1000, 500)
+
+    ## Receive DMRO output data and store it to dat file
+    for k in range(1):
+        Board_num = 1
+        Total_point = 50000 * 200
+        filename = "Array_Data_B%s_%sP.dat"%(Board_num, Total_point)
+        print("filename is: %s"%filename)
+        print("Fetching NO.%01d file..."%k)
+        data_out = [0]
+        data_out = test_ddr3(Total_point/50000)                          ## num: The total fetch data num * 50000
+        print(data_out)
+
+        ##  Creat a directory named path with date of today
+        today = datetime.date.today()
+        todaystr = today.isoformat() + "_Array_Test_Result"
+        try:
+            os.mkdir(todaystr)
+            print("Directory %s was created!"%todaystr)
+        except FileExistsError:
+            print("Directory %s already exists!"%todaystr)
+
+        data_out = [['ffaa55aa']]
+        with open("./%s/%s_%01d.dat"%(todaystr, filename, k),'w') as infile:
+            for i in range(len(data_out)):
+                TDC_data = []
+                for j in range(30):
+                    TDC_data += [((data_out[i] >> j) & 0x1)]
+                hitFlag = TDC_data[29]
+                TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
+                TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
+                Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
+                # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
+                infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
 
 #--------------------------------------------------------------------------#
 ## if statement
