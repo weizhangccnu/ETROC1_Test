@@ -17,6 +17,9 @@ from command_interpret import *
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
+#========================================================================================#
+freqency = 1000
+duration = 1000
 '''
 @author: Wei Zhang
 @date: 2018-02-28
@@ -99,15 +102,15 @@ def iic_read(mode, slave_addr, wr, reg_addr):
     val = mode << 24 | slave_addr << 17 |  0 << 16 | reg_addr << 8 | 0x00	  # write device addr and reg addr
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
-    time.sleep(0.01)
+    time.sleep(0.02)
     cmd_interpret.write_pulse_reg(0x0001)				                      # Sent a pulse to IIC module
 
     val = mode << 24 | slave_addr << 17 | wr << 16 | reg_addr << 8 | 0x00	  # write device addr and read one byte
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
-    time.sleep(0.01)
+    time.sleep(0.02)
     cmd_interpret.write_pulse_reg(0x0001)				                      # Sent a pulse to IIC module
-    time.sleep(0.01)									                      # delay 10ns then to read data
+    time.sleep(0.02)									                      # delay 10ns then to read data
     return cmd_interpret.read_status_reg(0) & 0xff
 #--------------------------------------------------------------------------#
 ## Enable FPGA Descrambler
@@ -125,11 +128,25 @@ def main():
 
     reg_val = []
     ETROC1_ArrayReg1 = ETROC1_ArrayReg()                                # New a class
-    ETROC1_ArrayReg1.set_CLSel(1)
-    ETROC1_ArrayReg1.set_RfSel(2)
-    ETROC1_ArrayReg1.set_HysSel(0xf)
-    ETROC1_ArrayReg1.set_IBSel(7)
-    ETROC1_ArrayReg1.set_QSel(2)
+    # ETROC1_ArrayReg1.set_CLSel(1)
+    # ETROC1_ArrayReg1.set_RfSel(2)
+    # ETROC1_ArrayReg1.set_HysSel(0xf)
+    # ETROC1_ArrayReg1.set_IBSel(7)
+    # ETROC1_ArrayReg1.set_QSel(2)
+
+    ## Phase Shifter Setting
+    ETROC1_ArrayReg1.set_dllCapReset(0)
+    ETROC1_ArrayReg1.set_dllCPCurrent(1)
+    ETROC1_ArrayReg1.set_dllEnable(1)
+    ETROC1_ArrayReg1.set_dllForceDown(0)
+    ETROC1_ArrayReg1.set_PhaseAdj(60)
+
+    ETROC1_ArrayReg1.set_RefStrSel(0x03)
+
+    ETROC1_ArrayReg1.set_TestCLK0(0)            # 0: 40M and 320M clock comes from phase shifter, 1: 40M and 320M clock comes from external pads
+    ETROC1_ArrayReg1.set_TestCLK1(0)            # 0: 40M and 320M  go cross clock strobe 1: 40M and 320M bypass
+    ETROC1_ArrayReg1.set_CLKOutSel(1)           # 0: 40M clock output, 1: 320M clock or strobe output
+
     reg_val = ETROC1_ArrayReg1.get_config_vector()                      # Get Array Pixel Register default data
 
     ## write data to I2C register one by one
@@ -154,48 +171,51 @@ def main():
     ## compare I2C write in data with I2C read back data
     if iic_read_val == reg_val:
         print("Wrote in data matches with read back data!")
+        winsound.Beep(1000, 500)
     else:
         print("Wrote in data doesn't matche with read back data!!!!")
-        winsound.Beep(1000, 500)
+        for x in range(3):
+            winsound.Beep(1000, 500)
+
 
     ## Receive DMRO output data and store it to dat file
-    for k in range(1):
-        Board_num = 1
-        Total_point = 50000 * 200
-        filename = "Array_Data_B%s_%sP.dat"%(Board_num, Total_point)
-        print("filename is: %s"%filename)
-        print("Fetching NO.%01d file..."%k)
-        data_out = [0]
-        data_out = test_ddr3(Total_point/50000)                          ## num: The total fetch data num * 50000
-        print(data_out)
-
-        ##  Creat a directory named path with date of today
-        today = datetime.date.today()
-        todaystr = today.isoformat() + "_Array_Test_Result"
-        try:
-            os.mkdir(todaystr)
-            print("Directory %s was created!"%todaystr)
-        except FileExistsError:
-            print("Directory %s already exists!"%todaystr)
-
-        data_out = [['ffaa55aa']]
-        with open("./%s/%s_%01d.dat"%(todaystr, filename, k),'w') as infile:
-            for i in range(len(data_out)):
-                TDC_data = []
-                for j in range(30):
-                    TDC_data += [((data_out[i] >> j) & 0x1)]
-                hitFlag = TDC_data[29]
-                TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
-                TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
-                Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
-                # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
-                infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
+    # for k in range(1):
+    #     Board_num = 1
+    #     Total_point = 200
+    #     filename = "Array_Data_B%s_%sP.dat"%(Board_num, Total_point*50000)
+    #     print("filename is: %s"%filename)
+    #     print("Fetching NO.%01d file..."%k)
+    #     data_out = [0]
+    #     data_out = test_ddr3(Total_point)                           ## num: The total fetch data num * 50000
+    #     print(data_out)
+    #
+    #     ##  Creat a directory named path with date of today
+    #     today = datetime.date.today()
+    #     todaystr = today.isoformat() + "_Array_Test_Result"
+    #     try:
+    #         os.mkdir(todaystr)
+    #         print("Directory %s was created!"%todaystr)
+    #     except FileExistsError:
+    #         print("Directory %s already exists!"%todaystr)
+    #
+    #     data_out = [['ffaa55aa']]
+    #     with open("./%s/%s_%01d.dat"%(todaystr, filename, k),'w') as infile:
+    #         for i in range(len(data_out)):
+    #             TDC_data = []
+    #             for j in range(30):
+    #                 TDC_data += [((data_out[i] >> j) & 0x1)]
+    #             hitFlag = TDC_data[29]
+    #             TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
+    #             TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
+    #             Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
+    #             # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
+    #             infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
 
 #--------------------------------------------------------------------------#
 ## if statement
 if __name__ == "__main__":
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	#initial socket
-	s.connect((hostname, port))								#connect socket
-	cmd_interpret = command_interpret(s)					#Class instance
-	main()													#execute main function
+    s.connect((hostname, port))								#connect socket
+    cmd_interpret = command_interpret(s)					#Class instance
+    main()													#execute main function
     s.close()												#close socket
