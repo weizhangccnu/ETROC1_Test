@@ -121,10 +121,10 @@ class ETROC1_ArrayReg(object):
         self._regMap['QSel'] = 0x1f & val
 
     def set_Dis_VTHInOut7_0(self, val):                             # Disable threshold voltage input/output of the specified pixel.
-        self._regMap['Dis_VTHInOut7_0'] = 0xff & val
+        self._regMap['DIS_VTHInOut7_0'] = 0xff & val
 
     def set_Dis_VTHInOut15_8(self, val):                            # Disable threshold voltage input/output of the specified pixel.
-        self._regMap['Dis_VTHInOut15_8'] = 0xff & val
+        self._regMap['DIS_VTHInOut15_8'] = 0xff & val
 
     def set_EN_DiscriOut(self, val):                                # Enable the Discriminator output, active high.
         self._regMap['EN_DiscriOut'] = 0xff & val
@@ -145,76 +145,76 @@ class ETROC1_ArrayReg(object):
         self._regMap['RO_SEL'] = 0x1 & val
 
     def set_PD_DACDiscri7_0(self, val):                             # Power down the DAC and the Discriminator in Pixel
-        self._regMap['PD_DACDiscri7_0'] = 0x1 & val
+        self._regMap['PD_DACDiscri7_0'] = 0xff & val
 
     def set_PD_DACDiscri15_8(self, val):                            # Power down the DAC and the Discriminator in Pixel
-        self._regMap['PD_DACDiscri15_8'] = 0x1 & val
+        self._regMap['PD_DACDiscri15_8'] = 0xff & val
 
     def set_VTHIn7_0(self, val):                                    # Discriminator threshold voltage [7:0]
-        self._regMap['VTHIn7_0'] = 0x1 & val
+        self._regMap['VTHIn7_0'] = 0xff & val
 
     def set_VTHIn15_8(self, val):                                   # Discriminator threshold voltage [15:8]
-        self._regMap['VTHIn15_8'] = 0x1 & val
+        self._regMap['VTHIn15_8'] = 0xff & val
 
     def set_VTHIn23_16(self, val):                                  # Discriminator threshold voltage [23:16]
-        self._regMap['VTHIn23_16'] = 0x1 & val
+        self._regMap['VTHIn23_16'] = 0xff & val
 
     def set_VTHIn31_24(self, val):                                  # Discriminator threshold voltage [31:24]
-        self._regMap['VTHIn31_24'] = 0x1 & val
+        self._regMap['VTHIn31_24'] = 0xff & val
 
     def set_VTHIn39_32(self, val):                                  # Discriminator threshold voltage [39_32]
-        self._regMap['VTHIn39_32'] = 0x1 & val
+        self._regMap['VTHIn39_32'] = 0xff & val
 
     def set_VTHIn47_40(self, val):                                  # Discriminator threshold voltage [47_40]
-        self._regMap['VTHIn47_40'] = 0x1 & val
+        self._regMap['VTHIn47_40'] = 0xff & val
 
     def set_VTHIn55_48(self, val):                                  # Discriminator threshold voltage [55_48]
-        self._regMap['VTHIn55_48'] = 0x1 & val
+        self._regMap['VTHIn55_48'] = 0xff & val
 
     def set_VTHIn63_56(self, val):                                  # Discriminator threshold voltage [63_56]
-        self._regMap['VTHIn63_56'] = 0x1 & val
+        self._regMap['VTHIn63_56'] = 0xff & val
 
     def set_VTHIn71_64(self, val):                                  # Discriminator threshold voltage [71_64]
-        self._regMap['VTHIn71_64'] = 0x1 & val
+        self._regMap['VTHIn71_64'] = 0xff & val
 
     def set_VTHIn79_72(self, val):                                  # Discriminator threshold voltage [79_72]
-        self._regMap['VTHIn79_72'] = 0x1 & val
+        self._regMap['VTHIn79_72'] = 0xff & val
 
     def set_VTHIn87_80(self, val):                                  # Discriminator threshold voltage [87_80]
-        self._regMap['VTHIn87_80'] = 0x1 & val
+        self._regMap['VTHIn87_80'] = 0xff & val
 
     def set_VTHIn95_88(self, val):                                  # Discriminator threshold voltage [95_88]
-        self._regMap['VTHIn95_88'] = 0x1 & val
+        self._regMap['VTHIn95_88'] = 0xff & val
 
     def set_VTHIn103_96(self, val):                                 # Discriminator threshold voltage [103_96]
-        self._regMap['VTHIn103_96'] = 0x1 & val
+        self._regMap['VTHIn103_96'] = 0xff & val
 
     def set_VTHIn111_104(self, val):                                # Discriminator threshold voltage [111_104]
-        self._regMap['VTHIn111_104'] = 0x1 & val
+        self._regMap['VTHIn111_104'] = 0xff & val
 
     def set_VTHIn119_112(self, val):                                # Discriminator threshold voltage [119_112]
-        self._regMap['VTHIn119_112'] = 0x1 & val
+        self._regMap['VTHIn119_112'] = 0xff & val
 
     def set_VTHIn127_120(self, val):                                # Discriminator threshold voltage [127_120]
-        self._regMap['VTHIn127_120'] = 0x1 & val
+        self._regMap['VTHIn127_120'] = 0xff & val
 
     def set_VTHIn135_128(self, val):                                # Discriminator threshold voltage [135_128]
-        self._regMap['VTHIn135_128'] = 0x1 & val
+        self._regMap['VTHIn135_128'] = 0xff & val
 
     def set_VTHIn143_136(self, val):                                # Discriminator threshold voltage [143_136]
-        self._regMap['VTHIn143_136'] = 0x1 & val
+        self._regMap['VTHIn143_136'] = 0xff & val
 
     def set_VTHIn151_144(self, val):                                # Discriminator threshold voltage [151_144]
-        self._regMap['VTHIn151_144'] = 0x1 & val
+        self._regMap['VTHIn151_144'] = 0xff & val
 
     def set_VTHIn159_152(self, val):                                # Discriminator threshold voltage [159_152]
-        self._regMap['VTHIn159_152'] = 0x1 & val
+        self._regMap['VTHIn159_152'] = 0xff & val
 
     def set_ROI7_0(self, val):                                      # Region of interest, [7:0] low 8-bit vector specified
-        self._regMap['ROI7_0'] = 0x1 & val
+        self._regMap['ROI7_0'] = 0xff & val
 
     def set_ROI15_8(self, val):                                     # Region of interest, [15:8] low 8-bit vector specified
-        self._regMap['ROI15_8'] = 0x1 & val
+        self._regMap['ROI15_8'] = 0xff & val
 
     def set_TDC_autoReset(self, val):                               # 1: TDC auto reset active, 0: TDC auto reset isn't active.
         self._regMap['PD_DACDiscri7_0'] = 0x1 & val
@@ -281,9 +281,6 @@ class ETROC1_ArrayReg(object):
 
     def set_TestCLK1(self, val):                                    # 1: CLK320M Pulse and CLK40M comes from Pulse Strobe, 0: CLK320M Pulse and CLK40M comes from MUX
         self._regMap['TestCLK1'] = 0x1 & val
-
-    def set_CLKOutSel(self, val):                                   # 1: CLK320M Pulse Strobe Output, 0: Clk40M output
-        self._regMap['CLKOutSel'] = 0x1 & val
 
     def set_CLKOutSel(self, val):                                   # 1: CLK320M Pulse Strobe Output, 0: Clk40M output
         self._regMap['CLKOutSel'] = 0x1 & val
@@ -365,50 +362,50 @@ class ETROC1_ArrayReg(object):
         reg_value = []
 
         ## I2C Slave A
-        reg_value += [hex(self._regMap['HysSel'] << 4 | self._regMap['RfSel'] << 2 | self._regMap['CLSel'])]
-        reg_value += [hex(self._regMap['QSel'] << 3 | self._regMap['IBSel'])]
-        reg_value += [hex(self._regMap['DIS_VTHInOut7_0'])]
-        reg_value += [hex(self._regMap['DIS_VTHInOut15_8'])]
-        reg_value += [hex(self._regMap['EN_DiscriOut'])]
-        reg_value += [hex(self._regMap['EN_QInj7_0'])]
-        reg_value += [hex(self._regMap['EN_QInj15_8'])]
-        reg_value += [hex(self._regMap['RO_SEL'] << 6 | self._regMap['DMRO_Col'] << 4 | self._regMap['OE_DMRO_Row'])]
-        reg_value += [hex(self._regMap['PD_DACDiscri7_0'])]
-        reg_value += [hex(self._regMap['PD_DACDiscri15_8'])]
-        reg_value += [hex(self._regMap['VTHIn7_0'])]
-        reg_value += [hex(self._regMap['VTHIn15_8'])]
-        reg_value += [hex(self._regMap['VTHIn23_16'])]
-        reg_value += [hex(self._regMap['VTHIn31_24'])]
-        reg_value += [hex(self._regMap['VTHIn39_32'])]
-        reg_value += [hex(self._regMap['VTHIn47_40'])]
-        reg_value += [hex(self._regMap['VTHIn55_48'])]
-        reg_value += [hex(self._regMap['VTHIn63_56'])]
-        reg_value += [hex(self._regMap['VTHIn71_64'])]
-        reg_value += [hex(self._regMap['VTHIn79_72'])]
-        reg_value += [hex(self._regMap['VTHIn87_80'])]
-        reg_value += [hex(self._regMap['VTHIn95_88'])]
-        reg_value += [hex(self._regMap['VTHIn103_96'])]
-        reg_value += [hex(self._regMap['VTHIn111_104'])]
-        reg_value += [hex(self._regMap['VTHIn119_112'])]
-        reg_value += [hex(self._regMap['VTHIn127_120'])]
-        reg_value += [hex(self._regMap['VTHIn135_128'])]
-        reg_value += [hex(self._regMap['VTHIn143_136'])]
-        reg_value += [hex(self._regMap['VTHIn151_144'])]
-        reg_value += [hex(self._regMap['VTHIn159_152'])]
-        reg_value += [hex(self._regMap['ROI7_0'])]
-        reg_value += [hex(self._regMap['ROI15_8'])]
+        reg_value += [self._regMap['HysSel'] << 4 | self._regMap['RfSel'] << 2 | self._regMap['CLSel']]
+        reg_value += [self._regMap['QSel'] << 3 | self._regMap['IBSel']]
+        reg_value += [self._regMap['DIS_VTHInOut7_0']]
+        reg_value += [self._regMap['DIS_VTHInOut15_8']]
+        reg_value += [self._regMap['EN_DiscriOut']]
+        reg_value += [self._regMap['EN_QInj7_0']]
+        reg_value += [self._regMap['EN_QInj15_8']]
+        reg_value += [self._regMap['RO_SEL'] << 6 | self._regMap['DMRO_Col'] << 4 | self._regMap['OE_DMRO_Row']]
+        reg_value += [self._regMap['PD_DACDiscri7_0']]
+        reg_value += [self._regMap['PD_DACDiscri15_8']]
+        reg_value += [self._regMap['VTHIn7_0']]
+        reg_value += [self._regMap['VTHIn15_8']]
+        reg_value += [self._regMap['VTHIn23_16']]
+        reg_value += [self._regMap['VTHIn31_24']]
+        reg_value += [self._regMap['VTHIn39_32']]
+        reg_value += [self._regMap['VTHIn47_40']]
+        reg_value += [self._regMap['VTHIn55_48']]
+        reg_value += [self._regMap['VTHIn63_56']]
+        reg_value += [self._regMap['VTHIn71_64']]
+        reg_value += [self._regMap['VTHIn79_72']]
+        reg_value += [self._regMap['VTHIn87_80']]
+        reg_value += [self._regMap['VTHIn95_88']]
+        reg_value += [self._regMap['VTHIn103_96']]
+        reg_value += [self._regMap['VTHIn111_104']]
+        reg_value += [self._regMap['VTHIn119_112']]
+        reg_value += [self._regMap['VTHIn127_120']]
+        reg_value += [self._regMap['VTHIn135_128']]
+        reg_value += [self._regMap['VTHIn143_136']]
+        reg_value += [self._regMap['VTHIn151_144']]
+        reg_value += [self._regMap['VTHIn159_152']]
+        reg_value += [self._regMap['ROI7_0']]
+        reg_value += [self._regMap['ROI15_8']]
 
         ## I2C Slave B
-        reg_value += [hex(self._regMap['TDC_timeStampMode'] << 7 | self._regMap['TDC_testMode'] << 6 | self._regMap['TDC_selRawCode'] << 5 | self._regMap['TDC_resetn'] << 4 | self._regMap['TDC_polaritySel'] << 3 | self._regMap['TDC_enable'] << 2 | self._regMap['TDC_enableMon'] << 1 | self._regMap['TDC_autoReset'])]
-        reg_value += [hex(self._regMap['TDC_level'])]
-        reg_value += [hex(self._regMap['TDC_offset'])]
-        reg_value += [hex(self._regMap['dllCPCurrent'] << 3 | self._regMap['dllCapReset'] << 2 | self._regMap['dllForceDown'] << 1 | self._regMap['dllEnable'])]
-        reg_value += [hex(self._regMap['PhaseAdj'])]
-        reg_value += [hex(self._regMap['RefStrSel'])]
-        reg_value += [hex(self._regMap['CLKOutSel'] << 6 | self._regMap['TestCLK1'] << 5 | self._regMap['TestCLK0'] << 4 | self._regMap['DMRO_testMode'] << 3 | self._regMap['DMRO_reverse'] << 2 | self._regMap['DMRO_revclk'] << 1 | self._regMap['DMRO_ENScr'])]
-        reg_value += [hex(self._regMap['Clk1G28_enableRx'] << 5 | self._regMap['Clk1G28_setCommMode'] << 4 | self._regMap['Clk1G28_enTermination'] << 3 | self._regMap['Clk1G28_invertData'] << 2  | self._regMap['Clk1G28_equ'])]
-        reg_value += [hex(self._regMap['Clk320M_enableRx'] << 5 | self._regMap['Clk320M_setCommMode'] << 4 | self._regMap['Clk320M_enTermination'] << 3 | self._regMap['Clk320M_invertData'] << 2  | self._regMap['Clk320M_equ'])]
-        reg_value += [hex(self._regMap['Clk40M_enableRx'] << 5 | self._regMap['Clk40M_setCommMode'] << 4 | self._regMap['Clk40M_enTermination'] << 3 | self._regMap['Clk40M_invertData'] << 2  | self._regMap['Clk40M_equ'])]
-        reg_value += [hex(self._regMap['QInj_enableRx'] << 5 | self._regMap['QInj_setCommMode'] << 4 | self._regMap['QInj_enTermination'] << 3 | self._regMap['QInj_invertData'] << 2  | self._regMap['QInj_equ'])]
-        reg_value += [hex(self._regMap['Dataout_disBIAS'] << 7 | self._regMap['Dataout_AmplSel'] << 4 | self._regMap['CLKTO_disBIAS'] << 3 | self._regMap['CLKTO_AmplSel'])]
+        reg_value += [self._regMap['TDC_timeStampMode'] << 7 | self._regMap['TDC_testMode'] << 6 | self._regMap['TDC_selRawCode'] << 5 | self._regMap['TDC_resetn'] << 4 | self._regMap['TDC_polaritySel'] << 3 | self._regMap['TDC_enable'] << 2 | self._regMap['TDC_enableMon'] << 1 | self._regMap['TDC_autoReset']]
+        reg_value += [self._regMap['TDC_level']]
+        reg_value += [self._regMap['TDC_offset']]
+        reg_value += [self._regMap['dllCPCurrent'] << 3 | self._regMap['dllCapReset'] << 2 | self._regMap['dllForceDown'] << 1 | self._regMap['dllEnable']]
+        reg_value += [self._regMap['PhaseAdj']]
+        reg_value += [self._regMap['RefStrSel']]
+        reg_value += [self._regMap['CLKOutSel'] << 6 | self._regMap['TestCLK1'] << 5 | self._regMap['TestCLK0'] << 4 | self._regMap['DMRO_testMode'] << 3 | self._regMap['DMRO_reverse'] << 2 | self._regMap['DMRO_revclk'] << 1 | self._regMap['DMRO_ENScr']]
+        reg_value += [self._regMap['Clk1G28_enableRx'] << 5 | self._regMap['Clk1G28_setCommMode'] << 4 | self._regMap['Clk1G28_enTermination'] << 3 | self._regMap['Clk1G28_invertData'] << 2  | self._regMap['Clk1G28_equ']]
+        reg_value += [self._regMap['Clk320M_enableRx'] << 5 | self._regMap['Clk320M_setCommMode'] << 4 | self._regMap['Clk320M_enTermination'] << 3 | self._regMap['Clk320M_invertData'] << 2  | self._regMap['Clk320M_equ']]
+        reg_value += [self._regMap['Clk40M_enableRx'] << 5 | self._regMap['Clk40M_setCommMode'] << 4 | self._regMap['Clk40M_enTermination'] << 3 | self._regMap['Clk40M_invertData'] << 2  | self._regMap['Clk40M_equ']]
+        reg_value += [self._regMap['QInj_enableRx'] << 5 | self._regMap['QInj_setCommMode'] << 4 | self._regMap['QInj_enTermination'] << 3 | self._regMap['QInj_invertData'] << 2  | self._regMap['QInj_equ']]
+        reg_value += [self._regMap['Dataout_disBIAS'] << 7 | self._regMap['Dataout_AmplSel'] << 4 | self._regMap['CLKTO_disBIAS'] << 3 | self._regMap['CLKTO_AmplSel']]
         return reg_value
