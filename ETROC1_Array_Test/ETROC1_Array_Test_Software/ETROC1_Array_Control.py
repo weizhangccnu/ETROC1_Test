@@ -121,28 +121,58 @@ def Enable_FPGA_Descramblber(val):
         print("Disable FPGA Descrambler")
     cmd_interpret.write_config_reg(14, 0x0001 & val)       # write enable
 #--------------------------------------------------------------------------#
+## DAC output configuration, 0x000: 0.6V  ox200: 0.8V  0x2ff: 1V
+#@para[in] num : 0-15 value: Digital input value
+def DAC_Config(num, value):
+    pass
+#--------------------------------------------------------------------------#
 ## main functionl
 def main():
     slaveA_addr = 0x03                                                  # I2C slave A address
     slaveB_addr = 0x7f                                                  # I2C slave B address
 
     reg_val = []
-    ETROC1_ArrayReg1 = ETROC1_ArrayReg()                                # New a class
-    # ETROC1_ArrayReg1.set_CLSel(1)
-    # ETROC1_ArrayReg1.set_RfSel(2)
-    # ETROC1_ArrayReg1.set_HysSel(0xf)
-    # ETROC1_ArrayReg1.set_IBSel(7)
-    # ETROC1_ArrayReg1.set_QSel(2)
+
+    ## charge injection setting
+    ETROC1_ArrayReg1.set_QSel(6)
+    ETROC1_ArrayReg1.set_EN_QInj7_0(0x01)       # Enable QInj7~0
+    ETROC1_ArrayReg1.set_EN_QInj15_8(0x00)      # Enable QInj15~8
+
+    ## PreAmp setting
+    ETROC1_ArrayReg1.set_CLSel(1)
+    ETROC1_ArrayReg1.set_RfSel(2)
+    ETROC1_ArrayReg1.set_IBSel(7)
+
+    ## Discriminator setting
+    ETROC1_ArrayReg1.set_HysSel(0xf)
+
+    ETROC1_ArrayReg1.set_EN_DiscriOut(0x11)
+
+    ETROC1_ArrayReg1.set_PD_DACDiscri7_0(0xfe)
+    ETROC1_ArrayReg1.set_PD_DACDiscri15_8(0xff)
+
+    ## VDAC setting
+    VTHOut_Select = [[0xfe, 0xff], [0xfd, 0xff], [0xfb, 0xff], [0xf7, 0xff], [0xef, 0xff], [0xdf, 0xff], [0xbf, 0xff], [0x7f, 0xff],\
+                     [0xff, 0xfe], [0xff, 0xfd], [0xff, 0xfb], [0xff, 0xf7], [0xff, 0xef], [0xff, 0xdf], [0xff, 0xbf], [0xff, 0x7f], [0xff, 0xff]]
+
+    Pixel_VTHOut_Select = 0                 # num ranges from 0-15      16: all turn off
+    ETROC1_ArrayReg1.set_Dis_VTHInOut7_0(VTHOut_Select[Pixel_VTHOut_Select][0])
+    ETROC1_ArrayReg1.set_Dis_VTHInOut15_8(VTHOut_Select[Pixel_VTHOut_Select][1])
+
+    ETROC1_ArrayReg1.set_VTHIn7_0(0xf4)
+    ETROC1_ArrayReg1.set_VTHIn15_8(0x02)
 
     ## Phase Shifter Setting
-    ETROC1_ArrayReg1.set_dllCapReset(0)
-    ETROC1_ArrayReg1.set_dllCPCurrent(1)
-    ETROC1_ArrayReg1.set_dllEnable(1)
-    ETROC1_ArrayReg1.set_dllForceDown(0)
-    ETROC1_ArrayReg1.set_PhaseAdj(60)
+    ETROC1_ArrayReg1.set_dllCapReset(0)         # should be set to 0
+    ETROC1_ArrayReg1.set_dllCPCurrent(1)        # default value 1:
+    ETROC1_ArrayReg1.set_dllEnable(1)           # Enable phase shifter
+    ETROC1_ArrayReg1.set_dllForceDown(0)        # should be set to 0
+    ETROC1_ArrayReg1.set_PhaseAdj(60)           # 0-128 to adjust clock phas
 
-    ETROC1_ArrayReg1.set_RefStrSel(0x03)
+    # 320M clock strobe setting
+    ETROC1_ArrayReg1.set_RefStrSel(0x03)        # default 0x03: 3.125 ns
 
+    # clock input and output MUX select
     ETROC1_ArrayReg1.set_TestCLK0(0)            # 0: 40M and 320M clock comes from phase shifter, 1: 40M and 320M clock comes from external pads
     ETROC1_ArrayReg1.set_TestCLK1(0)            # 0: 40M and 320M  go cross clock strobe 1: 40M and 320M bypass
     ETROC1_ArrayReg1.set_CLKOutSel(1)           # 0: 40M clock output, 1: 320M clock or strobe output
@@ -217,5 +247,6 @@ if __name__ == "__main__":
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	#initial socket
     s.connect((hostname, port))								#connect socket
     cmd_interpret = command_interpret(s)					#Class instance
+    ETROC1_ArrayReg1 = ETROC1_ArrayReg()                                # New a class
     main()													#execute main function
     s.close()												#close socket
