@@ -55,21 +55,29 @@ def read_data_from_ddr3(rd_stop_addr):
 ## test ddr3
 def test_ddr3(data_num):
     cmd_interpret.write_config_reg(0, 0x0000)       # written disable
-    cmd_interpret.write_pulse_reg(0x0040)           # reset ddr3 control logic
-    time.sleep(0.01)
+    cmd_interpret.write_pulse_reg(0x0040)           # reset fifo32to256
+    time.sleep(0.02)
+
     cmd_interpret.write_pulse_reg(0x0004)           # reset ddr3 data fifo
-    time.sleep(0.01)
+    time.sleep(0.02)
+
+    cmd_interpret.write_pulse_reg(0x0040)           # reset fifo32to256
+    time.sleep(0.02)
+
+    cmd_interpret.write_pulse_reg(0x0004)           # reset ddr3 data fifo
+    time.sleep(0.02)
     print("sent pulse!")
 
     cmd_interpret.write_config_reg(0, 0x0001)       # written enable
 
     write_data_into_ddr3(1, 0x0000000, 0x6000000)   # set write begin address and post trigger address and wrap around
     cmd_interpret.write_pulse_reg(0x0008)           # writing start
+    time.sleep(0.02)
     cmd_interpret.write_pulse_reg(0x0010)           # writing stop
 
-    time.sleep(1)
+    time.sleep(2)
     cmd_interpret.write_config_reg(0, 0x0000)       # write enable
-    time.sleep(3)
+    time.sleep(4)
     read_data_from_ddr3(0x6000000)                  # set read begin address
 
     data_out = []
@@ -128,11 +136,19 @@ def DAC_Config(num, value):
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
-    slaveA_addr = 0x03                                                  # I2C slave A address
-    slaveB_addr = 0x7f                                                  # I2C slave B address
+    slaveA_addr = 0x03                          # I2C slave A address
+    slaveB_addr = 0x7f                          # I2C slave B address
+
+    ## Parameters configuration
+    Pixel_Num = 15                              # range from 0-15
+    Board_num = 1                               # Board ID show in tag
+    EnScr = 1                                   # Enable Scrambler
+    DMRO_revclk = 1                             # Sample clock polarity
+    TDC_Mode_Output = 0                         # 1: TDC output data, 0: Counter output data
+    Fetch_Data = 1
+
 
     reg_val = []
-
     ## charge injection setting
     ETROC1_ArrayReg1.set_QSel(6)
     ETROC1_ArrayReg1.set_EN_QInj7_0(0x01)       # Enable QInj7~0
@@ -148,6 +164,7 @@ def main():
 
     ETROC1_ArrayReg1.set_EN_DiscriOut(0x11)
 
+
     ETROC1_ArrayReg1.set_PD_DACDiscri7_0(0xfe)
     ETROC1_ArrayReg1.set_PD_DACDiscri15_8(0xff)
 
@@ -155,19 +172,37 @@ def main():
     VTHOut_Select = [[0xfe, 0xff], [0xfd, 0xff], [0xfb, 0xff], [0xf7, 0xff], [0xef, 0xff], [0xdf, 0xff], [0xbf, 0xff], [0x7f, 0xff],\
                      [0xff, 0xfe], [0xff, 0xfd], [0xff, 0xfb], [0xff, 0xf7], [0xff, 0xef], [0xff, 0xdf], [0xff, 0xbf], [0xff, 0x7f], [0xff, 0xff]]
 
-    Pixel_VTHOut_Select = 0                 # num ranges from 0-15      16: all turn off
+    Pixel_VTHOut_Select = 15                 # num ranges from 0-15      16: all turn off
     ETROC1_ArrayReg1.set_Dis_VTHInOut7_0(VTHOut_Select[Pixel_VTHOut_Select][0])
     ETROC1_ArrayReg1.set_Dis_VTHInOut15_8(VTHOut_Select[Pixel_VTHOut_Select][1])
 
-    ETROC1_ArrayReg1.set_VTHIn7_0(0xf4)
-    ETROC1_ArrayReg1.set_VTHIn15_8(0x02)
+    ETROC1_ArrayReg1.set_VTHIn7_0(0xff)
+    ETROC1_ArrayReg1.set_VTHIn15_8(0xff)
+    ETROC1_ArrayReg1.set_VTHIn23_16(0xff)
+    ETROC1_ArrayReg1.set_VTHIn31_24(0xff)
+    ETROC1_ArrayReg1.set_VTHIn39_32(0xff)
+    ETROC1_ArrayReg1.set_VTHIn47_40(0xff)
+    ETROC1_ArrayReg1.set_VTHIn55_48(0xff)
+    ETROC1_ArrayReg1.set_VTHIn63_56(0xff)
+    ETROC1_ArrayReg1.set_VTHIn71_64(0xff)
+    ETROC1_ArrayReg1.set_VTHIn79_72(0xff)
+    ETROC1_ArrayReg1.set_VTHIn87_80(0xff)
+    ETROC1_ArrayReg1.set_VTHIn95_88(0xff)
+    ETROC1_ArrayReg1.set_VTHIn103_96(0xff)
+    ETROC1_ArrayReg1.set_VTHIn111_104(0xff)
+    ETROC1_ArrayReg1.set_VTHIn119_112(0xff)
+    ETROC1_ArrayReg1.set_VTHIn127_120(0xff)
+    ETROC1_ArrayReg1.set_VTHIn135_128(0xff)
+    ETROC1_ArrayReg1.set_VTHIn143_136(0xff)
+    ETROC1_ArrayReg1.set_VTHIn151_144(0xff)
+    ETROC1_ArrayReg1.set_VTHIn159_152(0x02)
 
     ## Phase Shifter Setting
     ETROC1_ArrayReg1.set_dllCapReset(0)         # should be set to 0
     ETROC1_ArrayReg1.set_dllCPCurrent(1)        # default value 1:
     ETROC1_ArrayReg1.set_dllEnable(1)           # Enable phase shifter
     ETROC1_ArrayReg1.set_dllForceDown(0)        # should be set to 0
-    ETROC1_ArrayReg1.set_PhaseAdj(60)           # 0-128 to adjust clock phas
+    ETROC1_ArrayReg1.set_PhaseAdj(30)           # 0-128 to adjust clock phas
 
     # 320M clock strobe setting
     ETROC1_ArrayReg1.set_RefStrSel(0x03)        # default 0x03: 3.125 ns
@@ -175,7 +210,31 @@ def main():
     # clock input and output MUX select
     ETROC1_ArrayReg1.set_TestCLK0(0)            # 0: 40M and 320M clock comes from phase shifter, 1: 40M and 320M clock comes from external pads
     ETROC1_ArrayReg1.set_TestCLK1(0)            # 0: 40M and 320M  go cross clock strobe 1: 40M and 320M bypass
-    ETROC1_ArrayReg1.set_CLKOutSel(1)           # 0: 40M clock output, 1: 320M clock or strobe output
+    ETROC1_ArrayReg1.set_CLKOutSel(0)           # 0: 40M clock output, 1: 320M clock or strobe output
+
+    ## DMRO readout Mode
+    ETROC1_ArrayReg1.set_OE_DMRO_Row(0x8)       # DMRO readout row select
+    ETROC1_ArrayReg1.set_DMRO_Col(0x3)          # DMRO readout column select
+    ETROC1_ArrayReg1.set_RO_SEL(0)              # 0: DMRO readout enable  1: Simple readout enable
+    ETROC1_ArrayReg1.set_TDC_enableMon(~TDC_Mode_Output)       # 0: Connect to TDC       1: Connect to Test Counter
+
+    ## TDC setting
+    ETROC1_ArrayReg1.set_TDC_resetn(1)
+    ETROC1_ArrayReg1.set_TDC_testMode(1)
+    ETROC1_ArrayReg1.set_TDC_autoReset(0)
+    ETROC1_ArrayReg1.set_TDC_enable(1)
+
+    ## DMRO Setting
+    ETROC1_ArrayReg1.set_DMRO_ENScr(EnScr)          # Enable DMRO scrambler
+    ETROC1_ArrayReg1.set_DMRO_revclk(DMRO_revclk)
+    ETROC1_ArrayReg1.set_DMRO_testMode(0)       # DMRO work on test mode
+    Enable_FPGA_Descramblber(EnScr)                 # Enable FPGA Firmware Descrambler
+
+    ## DMRO CML driver
+    ETROC1_ArrayReg1.set_Dataout_AmplSel(7)
+
+    ETROC1_ArrayReg1.set_CLKTO_AmplSel(7)
+    ETROC1_ArrayReg1.set_CLKTO_disBIAS(0)
 
     reg_val = ETROC1_ArrayReg1.get_config_vector()                      # Get Array Pixel Register default data
 
@@ -200,7 +259,7 @@ def main():
 
     ## compare I2C write in data with I2C read back data
     if iic_read_val == reg_val:
-        print("Wrote in data matches with read back data!")
+        print("Wrote into data matches with read back data!")
         winsound.Beep(1000, 500)
     else:
         print("Wrote in data doesn't matche with read back data!!!!")
@@ -208,38 +267,59 @@ def main():
             winsound.Beep(1000, 500)
 
 
-    ## Receive DMRO output data and store it to dat file
-    # for k in range(1):
-    #     Board_num = 1
-    #     Total_point = 200
-    #     filename = "Array_Data_B%s_%sP.dat"%(Board_num, Total_point*50000)
-    #     print("filename is: %s"%filename)
-    #     print("Fetching NO.%01d file..."%k)
-    #     data_out = [0]
-    #     data_out = test_ddr3(Total_point)                           ## num: The total fetch data num * 50000
-    #     print(data_out)
-    #
-    #     ##  Creat a directory named path with date of today
-    #     today = datetime.date.today()
-    #     todaystr = today.isoformat() + "_Array_Test_Result"
-    #     try:
-    #         os.mkdir(todaystr)
-    #         print("Directory %s was created!"%todaystr)
-    #     except FileExistsError:
-    #         print("Directory %s already exists!"%todaystr)
-    #
-    #     data_out = [['ffaa55aa']]
-    #     with open("./%s/%s_%01d.dat"%(todaystr, filename, k),'w') as infile:
-    #         for i in range(len(data_out)):
-    #             TDC_data = []
-    #             for j in range(30):
-    #                 TDC_data += [((data_out[i] >> j) & 0x1)]
-    #             hitFlag = TDC_data[29]
-    #             TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
-    #             TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
-    #             Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
-    #             # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
-    #             infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
+    # Receive DMRO output data and store it to dat file
+    if Fetch_Data == 1:
+        for k in range(1):
+            Total_point = 10
+            if TDC_Mode_Output == 1:
+                filename = "Array_Data_Pixel=%02d_VTHIn3_0=0x0F_EnScr=%1d_DMRO_revclk=%1d_TDC_Mode_Output_B%s_%s"%(Pixel_Num, EnScr, DMRO_revclk, Board_num, Total_point*50000)
+            else:
+                filename = "Array_Data_Pixel=%02d_VTHIn3_0=0x0F_EnScr=%1d_DMRO_revclk=%1d_Counter_Mode_Output_B%s_%s"%(Pixel_Num, EnScr, DMRO_revclk, Board_num, Total_point*50000)
+
+            ##  Creat a directory named path with date of today
+            today = datetime.date.today()
+            todaystr = today.isoformat() + "_Array_Test_Results"
+            try:
+                os.mkdir(todaystr)
+                print("Directory %s was created!"%todaystr)
+            except FileExistsError:
+                print("Directory %s already exists!"%todaystr)
+
+            ## add log file
+            with open("./%s/log_%s.dat"%(todaystr, time.strftime('%Y-%m-%d_%H-%M-%S',time.localtime(time.time()))),'w+') as logfile:
+                logfile.write("%s\n"%time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
+                logfile.write("I2C write into data:\n")
+                for i in range(len(reg_val)):
+                    if i < 32:                                                      # I2C slave A write
+                        logfile.writelines("REGA_%02d %s\n"%(i, hex(reg_val[i])))
+                    else:                                                           # I2C slave B write
+                        logfile.writelines("REGB_%02d %s\n"%(i-32, hex(reg_val[i])))
+                if iic_read_val == reg_val:
+                    logfile.write("Wrote into data matches with read back data!\n")
+                else:
+                    logfile.write("Wrote in data doesn't matche with read back data!!!!\n")
+                logfile.write("%s\n"%filename)
+
+            print("filename is: %s"%filename)
+            print("Fetching NO.%01d file..."%k)
+            data_out = [0]
+            data_out = test_ddr3(Total_point)                           ## num: The total fetch data num * 50000
+            # print(data_out)
+
+            with open("./%s/%s_%01d.dat"%(todaystr, filename, k),'w') as infile:
+                for i in range(len(data_out)):
+                    if TDC_Mode_Output == 0:
+                        infile.write("%d\n"%(data_out[i]))
+                    else:
+                        TDC_data = []
+                        for j in range(30):
+                            TDC_data += [((data_out[i] >> j) & 0x1)]
+                        hitFlag = TDC_data[29]
+                        TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
+                        TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
+                        Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
+                        # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
+                        infile.write("%3d %3d %3d %d\n"%(TOT_Code1, TOA_Code1, Cal_Code1, hitFlag))
 
 #--------------------------------------------------------------------------#
 ## if statement
