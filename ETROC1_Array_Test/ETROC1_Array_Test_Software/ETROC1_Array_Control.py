@@ -131,8 +131,39 @@ def Enable_FPGA_Descramblber(val):
 #--------------------------------------------------------------------------#
 ## DAC output configuration, 0x000: 0.6V  ox200: 0.8V  0x2ff: 1V
 #@para[in] num : 0-15 value: Digital input value
-def DAC_Config(num, value):
-    pass
+def DAC_Config(DAC_Value):
+    DAC_160bit = []
+    for i in range(len(DAC_Value)):
+        for j in range(10):
+            DAC_160bit += [(DAC_Value[i] >> j) & 0x001]
+    DAC_8bit = [[] for x in range(20)]
+    for k in range(len(DAC_8bit)):
+        DAC_Single = 0
+        for l in range(8):
+            DAC_Single += (DAC_160bit[k*8+l] & 0x1) << l
+        DAC_8bit[k] = DAC_Single
+    ETROC1_ArrayReg1.set_VTHIn7_0(DAC_8bit[0])
+    ETROC1_ArrayReg1.set_VTHIn15_8(DAC_8bit[1])
+    ETROC1_ArrayReg1.set_VTHIn23_16(DAC_8bit[2])
+    ETROC1_ArrayReg1.set_VTHIn31_24(DAC_8bit[3])
+    ETROC1_ArrayReg1.set_VTHIn39_32(DAC_8bit[4])
+    ETROC1_ArrayReg1.set_VTHIn47_40(DAC_8bit[5])
+    ETROC1_ArrayReg1.set_VTHIn55_48(DAC_8bit[6])
+    ETROC1_ArrayReg1.set_VTHIn63_56(DAC_8bit[7])
+    ETROC1_ArrayReg1.set_VTHIn71_64(DAC_8bit[8])
+    ETROC1_ArrayReg1.set_VTHIn79_72(DAC_8bit[9])
+    ETROC1_ArrayReg1.set_VTHIn87_80(DAC_8bit[10])
+    ETROC1_ArrayReg1.set_VTHIn95_88(DAC_8bit[11])
+    ETROC1_ArrayReg1.set_VTHIn103_96(DAC_8bit[12])
+    ETROC1_ArrayReg1.set_VTHIn111_104(DAC_8bit[13])
+    ETROC1_ArrayReg1.set_VTHIn119_112(DAC_8bit[14])
+    ETROC1_ArrayReg1.set_VTHIn127_120(DAC_8bit[15])
+    ETROC1_ArrayReg1.set_VTHIn135_128(DAC_8bit[16])
+    ETROC1_ArrayReg1.set_VTHIn143_136(DAC_8bit[17])
+    ETROC1_ArrayReg1.set_VTHIn151_144(DAC_8bit[18])
+    ETROC1_ArrayReg1.set_VTHIn159_152(DAC_8bit[19])
+
+
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
@@ -144,65 +175,70 @@ def main():
     Board_num = 1                               # Board ID show in tag
     EnScr = 1                                   # Enable Scrambler
     DMRO_revclk = 1                             # Sample clock polarity
-    TDC_Mode_Output = 0                         # 1: TDC output data, 0: Counter output data
-    Fetch_Data = 1
+    Test_Pattern_Mode_Output = 0                # 0: TDC output data, 1: Counter output data
+    TDC_testMode = 0
+    TDC_Enable = 1
+    PhaseAdj = 250
+    Total_point = 10                            # Total fetch data = Total_point * 50000
 
+    Fetch_Data = 1                              # Turn On fetch data
 
+    DAC_P0 = 0x3ff
+    DAC_P1 = 0x3ff
+    DAC_P2 = 0x000
+    DAC_P3 = 0x000
+    DAC_P4 = 0x000
+    DAC_P5 = 0x000
+    DAC_P6 = 0x000
+    DAC_P7 = 0x000
+    DAC_P8 = 0x000
+    DAC_P9 = 0x000
+    DAC_P10 = 0x000
+    DAC_P11 = 0x000
+    DAC_P12 = 0x000
+    DAC_P13 = 0x000
+    DAC_P14 = 0x000
+    DAC_P15 = 0x198
+    Pixel_VTHOut_Select = 15
+
+    DAC_Value = [DAC_P0, DAC_P1, DAC_P2, DAC_P3, DAC_P4, DAC_P5, DAC_P6, DAC_P7, DAC_P8,\
+                 DAC_P9, DAC_P10, DAC_P11, DAC_P12, DAC_P13, DAC_P14, DAC_P15]
+    DAC_Config(DAC_Value)
     reg_val = []
+
     ## charge injection setting
-    ETROC1_ArrayReg1.set_QSel(6)
-    ETROC1_ArrayReg1.set_EN_QInj7_0(0x01)       # Enable QInj7~0
-    ETROC1_ArrayReg1.set_EN_QInj15_8(0x00)      # Enable QInj15~8
+    ETROC1_ArrayReg1.set_QSel(8)
+    ETROC1_ArrayReg1.set_EN_QInj7_0(0x00)       # Enable QInj7~0
+    ETROC1_ArrayReg1.set_EN_QInj15_8(0x80)      # Enable QInj15~8
 
     ## PreAmp setting
     ETROC1_ArrayReg1.set_CLSel(1)
-    ETROC1_ArrayReg1.set_RfSel(2)
+    ETROC1_ArrayReg1.set_RfSel(3)
     ETROC1_ArrayReg1.set_IBSel(7)
 
     ## Discriminator setting
     ETROC1_ArrayReg1.set_HysSel(0xf)
 
-    ETROC1_ArrayReg1.set_EN_DiscriOut(0x11)
+    EN_DiscriOut = [0x11, 0x21, 0x41, 0x81, 0x12, 0x22, 0x42, 0x82, 0x14, 0x24, 0x44, 0x84, 0x18, 0x28, 0x48, 0x88, 0xff]
+    ETROC1_ArrayReg1.set_EN_DiscriOut(EN_DiscriOut[16])
 
-
-    ETROC1_ArrayReg1.set_PD_DACDiscri7_0(0xfe)
-    ETROC1_ArrayReg1.set_PD_DACDiscri15_8(0xff)
-
-    ## VDAC setting
+## VDAC setting
     VTHOut_Select = [[0xfe, 0xff], [0xfd, 0xff], [0xfb, 0xff], [0xf7, 0xff], [0xef, 0xff], [0xdf, 0xff], [0xbf, 0xff], [0x7f, 0xff],\
                      [0xff, 0xfe], [0xff, 0xfd], [0xff, 0xfb], [0xff, 0xf7], [0xff, 0xef], [0xff, 0xdf], [0xff, 0xbf], [0xff, 0x7f], [0xff, 0xff]]
 
-    Pixel_VTHOut_Select = 15                 # num ranges from 0-15      16: all turn off
+
+    ETROC1_ArrayReg1.set_PD_DACDiscri7_0(VTHOut_Select[Pixel_VTHOut_Select][0])
+    ETROC1_ArrayReg1.set_PD_DACDiscri15_8(VTHOut_Select[Pixel_VTHOut_Select][1])
+
     ETROC1_ArrayReg1.set_Dis_VTHInOut7_0(VTHOut_Select[Pixel_VTHOut_Select][0])
     ETROC1_ArrayReg1.set_Dis_VTHInOut15_8(VTHOut_Select[Pixel_VTHOut_Select][1])
-
-    ETROC1_ArrayReg1.set_VTHIn7_0(0xff)
-    ETROC1_ArrayReg1.set_VTHIn15_8(0xff)
-    ETROC1_ArrayReg1.set_VTHIn23_16(0xff)
-    ETROC1_ArrayReg1.set_VTHIn31_24(0xff)
-    ETROC1_ArrayReg1.set_VTHIn39_32(0xff)
-    ETROC1_ArrayReg1.set_VTHIn47_40(0xff)
-    ETROC1_ArrayReg1.set_VTHIn55_48(0xff)
-    ETROC1_ArrayReg1.set_VTHIn63_56(0xff)
-    ETROC1_ArrayReg1.set_VTHIn71_64(0xff)
-    ETROC1_ArrayReg1.set_VTHIn79_72(0xff)
-    ETROC1_ArrayReg1.set_VTHIn87_80(0xff)
-    ETROC1_ArrayReg1.set_VTHIn95_88(0xff)
-    ETROC1_ArrayReg1.set_VTHIn103_96(0xff)
-    ETROC1_ArrayReg1.set_VTHIn111_104(0xff)
-    ETROC1_ArrayReg1.set_VTHIn119_112(0xff)
-    ETROC1_ArrayReg1.set_VTHIn127_120(0xff)
-    ETROC1_ArrayReg1.set_VTHIn135_128(0xff)
-    ETROC1_ArrayReg1.set_VTHIn143_136(0xff)
-    ETROC1_ArrayReg1.set_VTHIn151_144(0xff)
-    ETROC1_ArrayReg1.set_VTHIn159_152(0x02)
 
     ## Phase Shifter Setting
     ETROC1_ArrayReg1.set_dllCapReset(0)         # should be set to 0
     ETROC1_ArrayReg1.set_dllCPCurrent(1)        # default value 1:
     ETROC1_ArrayReg1.set_dllEnable(1)           # Enable phase shifter
     ETROC1_ArrayReg1.set_dllForceDown(0)        # should be set to 0
-    ETROC1_ArrayReg1.set_PhaseAdj(30)           # 0-128 to adjust clock phas
+    ETROC1_ArrayReg1.set_PhaseAdj(PhaseAdj)           # 0-128 to adjust clock phas
 
     # 320M clock strobe setting
     ETROC1_ArrayReg1.set_RefStrSel(0x03)        # default 0x03: 3.125 ns
@@ -216,13 +252,13 @@ def main():
     ETROC1_ArrayReg1.set_OE_DMRO_Row(0x8)       # DMRO readout row select
     ETROC1_ArrayReg1.set_DMRO_Col(0x3)          # DMRO readout column select
     ETROC1_ArrayReg1.set_RO_SEL(0)              # 0: DMRO readout enable  1: Simple readout enable
-    ETROC1_ArrayReg1.set_TDC_enableMon(~TDC_Mode_Output)       # 0: Connect to TDC       1: Connect to Test Counter
+    ETROC1_ArrayReg1.set_TDC_enableMon(Test_Pattern_Mode_Output)       # 0: Connect to TDC       1: Connect to Test Counter
 
     ## TDC setting
     ETROC1_ArrayReg1.set_TDC_resetn(1)
-    ETROC1_ArrayReg1.set_TDC_testMode(1)
+    ETROC1_ArrayReg1.set_TDC_testMode(TDC_testMode)
     ETROC1_ArrayReg1.set_TDC_autoReset(0)
-    ETROC1_ArrayReg1.set_TDC_enable(1)
+    ETROC1_ArrayReg1.set_TDC_enable(TDC_Enable)
 
     ## DMRO Setting
     ETROC1_ArrayReg1.set_DMRO_ENScr(EnScr)          # Enable DMRO scrambler
@@ -270,11 +306,10 @@ def main():
     # Receive DMRO output data and store it to dat file
     if Fetch_Data == 1:
         for k in range(1):
-            Total_point = 10
-            if TDC_Mode_Output == 1:
-                filename = "Array_Data_Pixel=%02d_VTHIn3_0=0x0F_EnScr=%1d_DMRO_revclk=%1d_TDC_Mode_Output_B%s_%s"%(Pixel_Num, EnScr, DMRO_revclk, Board_num, Total_point*50000)
+            if Test_Pattern_Mode_Output == 0:
+                filename = "Array_Data_Pixel=%02d_VTHIn3_0=0x0F_EnScr=%1d_DMRO_revclk=%1d_TDC_testMode=%1d_PhaseAdj=%d_TDC_Mode_Output_B%s_%s"%(Pixel_Num, EnScr, DMRO_revclk, TDC_testMode, PhaseAdj, Board_num, Total_point*50000)
             else:
-                filename = "Array_Data_Pixel=%02d_VTHIn3_0=0x0F_EnScr=%1d_DMRO_revclk=%1d_Counter_Mode_Output_B%s_%s"%(Pixel_Num, EnScr, DMRO_revclk, Board_num, Total_point*50000)
+                filename = "Array_Data_Pixel=%02d_VTHIn3_0=0x0F_EnScr=%1d_DMRO_revclk=%1d_TDC_testMode=%1d_PhaseAdj=%d_Counter_Mode_Output_B%s_%s"%(Pixel_Num, EnScr, DMRO_revclk, TDC_testMode, PhaseAdj, Board_num, Total_point*50000)
 
             ##  Creat a directory named path with date of today
             today = datetime.date.today()
@@ -308,18 +343,18 @@ def main():
 
             with open("./%s/%s_%01d.dat"%(todaystr, filename, k),'w') as infile:
                 for i in range(len(data_out)):
-                    if TDC_Mode_Output == 0:
+                    if Test_Pattern_Mode_Output == 1:
                         infile.write("%d\n"%(data_out[i]))
                     else:
                         TDC_data = []
                         for j in range(30):
                             TDC_data += [((data_out[i] >> j) & 0x1)]
-                        hitFlag = TDC_data[29]
-                        TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
-                        TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
-                        Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
+                        hitFlag = TDC_data[0]
+                        TOT_Code1 = TDC_data[29] << 8 | TDC_data[28] << 7 | TDC_data[27] << 6 | TDC_data[26] << 5 | TDC_data[25] << 4 | TDC_data[24] << 3 | TDC_data[23] << 2 | TDC_data[22] << 1 | TDC_data[21]
+                        TOA_Code1 = TDC_data[20] << 9 | TDC_data[19] << 8 | TDC_data[18] << 7 | TDC_data[17] << 6 | TDC_data[16] << 5 | TDC_data[15] << 4 | TDC_data[14] << 3 | TDC_data[13] << 2 | TDC_data[12] << 1 | TDC_data[11]
+                        Cal_Code1 = TDC_data[10] << 9 | TDC_data[9] << 8 | TDC_data[8] << 7 | TDC_data[7] << 6 | TDC_data[6] << 5 | TDC_data[5] << 4 | TDC_data[4] << 3 | TDC_data[3] << 2 | TDC_data[2] << 1 | TDC_data[1]
                         # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
-                        infile.write("%3d %3d %3d %d\n"%(TOT_Code1, TOA_Code1, Cal_Code1, hitFlag))
+                        infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
 
 #--------------------------------------------------------------------------#
 ## if statement
