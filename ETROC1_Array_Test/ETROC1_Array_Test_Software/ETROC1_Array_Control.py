@@ -60,12 +60,6 @@ def test_ddr3(data_num):
 
     cmd_interpret.write_pulse_reg(0x0004)           # reset ddr3 data fifo
     time.sleep(0.02)
-
-    cmd_interpret.write_pulse_reg(0x0040)           # reset fifo32to256
-    time.sleep(0.02)
-
-    cmd_interpret.write_pulse_reg(0x0004)           # reset ddr3 data fifo
-    time.sleep(0.02)
     print("sent pulse!")
 
     cmd_interpret.write_config_reg(0, 0x0001)       # written enable
@@ -171,15 +165,22 @@ def main():
     slaveB_addr = 0x7f                          # I2C slave B address
 
     ## Parameters configuration
+    # QInjection Setting
+    QSel = 31
+    # PreAmp setting
+    CLSel = 1
+    RfSel = 3
+    IBSel = 7
+
     Pixel_Num = 15                              # range from 0-15
     Board_num = 1                               # Board ID show in tag
     EnScr = 1                                   # Enable Scrambler
     DMRO_revclk = 1                             # Sample clock polarity
-    Test_Pattern_Mode_Output = 0                # 0: TDC output data, 1: Counter output data
+    Test_Pattern_Mode_Output = 1                # 0: TDC output data, 1: Counter output data
     TDC_testMode = 0
     TDC_Enable = 1
-    PhaseAdj = 250
-    Total_point = 10                            # Total fetch data = Total_point * 50000
+    PhaseAdj = 30
+    Total_point = 1                            # Total fetch data = Total_point * 50000
 
     Fetch_Data = 1                              # Turn On fetch data
 
@@ -198,7 +199,7 @@ def main():
     DAC_P12 = 0x000
     DAC_P13 = 0x000
     DAC_P14 = 0x000
-    DAC_P15 = 0x198
+    DAC_P15 = 0x199
     Pixel_VTHOut_Select = 15
 
     DAC_Value = [DAC_P0, DAC_P1, DAC_P2, DAC_P3, DAC_P4, DAC_P5, DAC_P6, DAC_P7, DAC_P8,\
@@ -207,13 +208,14 @@ def main():
     reg_val = []
 
     ## charge injection setting
-    ETROC1_ArrayReg1.set_QSel(8)
+    ETROC1_ArrayReg1.set_QSel(QSel)
+
     ETROC1_ArrayReg1.set_EN_QInj7_0(0x00)       # Enable QInj7~0
     ETROC1_ArrayReg1.set_EN_QInj15_8(0x80)      # Enable QInj15~8
 
     ## PreAmp setting
-    ETROC1_ArrayReg1.set_CLSel(1)
-    ETROC1_ArrayReg1.set_RfSel(3)
+    ETROC1_ArrayReg1.set_CLSel(CLSel)
+    ETROC1_ArrayReg1.set_RfSel(RfSel)
     ETROC1_ArrayReg1.set_IBSel(7)
 
     ## Discriminator setting
@@ -306,10 +308,11 @@ def main():
     # Receive DMRO output data and store it to dat file
     if Fetch_Data == 1:
         for k in range(1):
+            time_stampe = time.strftime('%Y-%m-%d_%H-%M-%S',time.localtime(time.time()))
             if Test_Pattern_Mode_Output == 0:
-                filename = "Array_Data_Pixel=%02d_VTHIn3_0=0x0F_EnScr=%1d_DMRO_revclk=%1d_TDC_testMode=%1d_PhaseAdj=%d_TDC_Mode_Output_B%s_%s"%(Pixel_Num, EnScr, DMRO_revclk, TDC_testMode, PhaseAdj, Board_num, Total_point*50000)
+                filename = "Array_Data_Pixel=%02d_DAC_P15=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_TDC_testMode=%1d_PhaseAdj=%d_TDC_Mode_Output_B%s_%s_%s"%(Pixel_Num, DAC_P15, QSel, CLSel, RfSel, IBSel, TDC_testMode, PhaseAdj, Board_num, Total_point*50000, time_stampe)
             else:
-                filename = "Array_Data_Pixel=%02d_VTHIn3_0=0x0F_EnScr=%1d_DMRO_revclk=%1d_TDC_testMode=%1d_PhaseAdj=%d_Counter_Mode_Output_B%s_%s"%(Pixel_Num, EnScr, DMRO_revclk, TDC_testMode, PhaseAdj, Board_num, Total_point*50000)
+                filename = "Array_Data_Pixel=%02d_DAC_P15=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_TDC_testMode=%1d_PhaseAdj=%d_Counter_Mode_Output_B%s_%s_%s"%(Pixel_Num, DAC_P15, QSel, CLSel, RfSel, IBSel, TDC_testMode, PhaseAdj, Board_num, Total_point*50000, time_stampe)
 
             ##  Creat a directory named path with date of today
             today = datetime.date.today()
@@ -321,7 +324,7 @@ def main():
                 print("Directory %s already exists!"%todaystr)
 
             ## add log file
-            with open("./%s/log_%s.dat"%(todaystr, time.strftime('%Y-%m-%d_%H-%M-%S',time.localtime(time.time()))),'w+') as logfile:
+            with open("./%s/log_%s.dat"%(todaystr, time_stampe),'w+') as logfile:
                 logfile.write("%s\n"%time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
                 logfile.write("I2C write into data:\n")
                 for i in range(len(reg_val)):
@@ -341,7 +344,7 @@ def main():
             data_out = test_ddr3(Total_point)                           ## num: The total fetch data num * 50000
             # print(data_out)
 
-            with open("./%s/%s_%01d.dat"%(todaystr, filename, k),'w') as infile:
+            with open("./%s/%s.dat"%(todaystr, filename),'w') as infile:
                 for i in range(len(data_out)):
                     if Test_Pattern_Mode_Output == 1:
                         infile.write("%d\n"%(data_out[i]))
