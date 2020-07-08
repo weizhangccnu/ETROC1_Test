@@ -55,22 +55,21 @@ def read_data_from_ddr3(rd_stop_addr):
 ## test ddr3
 def test_ddr3(data_num):
     cmd_interpret.write_config_reg(0, 0x0000)       # written disable
-    cmd_interpret.write_pulse_reg(0x0040)           # reset fifo32to256
-    time.sleep(0.02)
 
-    cmd_interpret.write_pulse_reg(0x0004)           # reset ddr3 data fifo
-    time.sleep(0.02)
+    cmd_interpret.write_pulse_reg(0x0040)           # reset fifo32to256pypypy
+    time.sleep(0.2)
+
     print("sent pulse!")
 
     cmd_interpret.write_config_reg(0, 0x0001)       # written enable
 
     write_data_into_ddr3(1, 0x0000000, 0x6000000)   # set write begin address and post trigger address and wrap around
     cmd_interpret.write_pulse_reg(0x0008)           # writing start
-    time.sleep(0.02)
+    time.sleep(0.2)
     cmd_interpret.write_pulse_reg(0x0010)           # writing stop
 
     time.sleep(2)
-    cmd_interpret.write_config_reg(0, 0x0000)       # write enable
+    cmd_interpret.write_config_reg(0, 0x0000)       # write enablepy
     time.sleep(4)
     read_data_from_ddr3(0x6000000)                  # set read begin address
 
@@ -78,7 +77,6 @@ def test_ddr3(data_num):
     ## memoryview usage
     for i in range(data_num):
         data_out += cmd_interpret.read_data_fifo(50000)           # reading start
-    time.sleep(1)
 
     return data_out
 #--------------------------------------------------------------------------#
@@ -95,11 +93,11 @@ def iic_write(mode, slave_addr, wr, reg_addr, data):
     time.sleep(0.01)
     cmd_interpret.write_pulse_reg(0x0001)           # reset ddr3 data fifo
     time.sleep(0.01)
-    # print(hex(val))
+
 #--------------------------------------------------------------------------#
 ## IIC read slave device
 # @param mode[1:0] : '0'is 1 bytes read or wirte, '1' is 2 bytes read or write, '2' is 3 bytes read or write
-# @param slave[7:0]: slave device address
+# @param slave[6:0]: slave device address
 # @param wr: 1-bit '0' is write, '1' is read
 # @param reg_addr[7:0] : register address
 def iic_read(mode, slave_addr, wr, reg_addr):
@@ -165,9 +163,9 @@ def main():
     slaveA_addr = 0x03                          # I2C slave A address
     slaveB_addr = 0x7f                          # I2C slave B address
 
-    for PhaseAdjust in range(80,84):
+    for PhaseAdjust in range(80,83):
         ## Parameters configuration
-        # QInjection Setting
+        # QInjection Setting2
         QSel = 6
         # PreAmp setting
         CLSel = 1
@@ -182,7 +180,7 @@ def main():
         TDC_testMode = 0
         TDC_Enable = 1
         PhaseAdj = PhaseAdjust
-        Total_point = 10                            # Total fetch data = Total_point * 50000
+        Total_point = 1                            # Total fetch data = Total_point * 50000
 
         Fetch_Data = 1                              # Turn On fetch data
 
@@ -298,7 +296,8 @@ def main():
         print("I2C read back data:")
         print(iic_read_val)
 
-        ## compare I2C write in data with I2C read back data
+
+        # compare I2C write in data with I2C read back data
         if iic_read_val == reg_val:
             print("Wrote into data matches with read back data!")
             winsound.Beep(1000, 500)
@@ -326,7 +325,7 @@ def main():
                 except FileExistsError:
                     print("Directory %s already exists!"%todaystr)
 
-                ## add log file
+                # add log file
                 with open("./%s/log_%s.dat"%(todaystr, time_stampe),'w+') as logfile:
                     logfile.write("%s\n"%time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
                     logfile.write("I2C write into data:\n")
@@ -343,10 +342,9 @@ def main():
 
                 print("filename is: %s"%filename)
                 print("Fetching NO.%01d file..."%k)
-                data_out = [0]
+                data_out = []
                 data_out = test_ddr3(Total_point)                           ## num: The total fetch data num * 50000
-                # print(data_out)
-                time.sleep(0.01)
+
 
                 with open("./%s/%s.dat"%(todaystr, filename),'w') as infile:
                     for i in range(len(data_out)):
@@ -362,13 +360,13 @@ def main():
                             Cal_Code1 = TDC_data[10] << 9 | TDC_data[9] << 8 | TDC_data[8] << 7 | TDC_data[7] << 6 | TDC_data[6] << 5 | TDC_data[5] << 4 | TDC_data[4] << 3 | TDC_data[3] << 2 | TDC_data[2] << 1 | TDC_data[1]
                             # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
                             infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
-        time.sleep(2)
+
 #--------------------------------------------------------------------------#
 ## if statement
 if __name__ == "__main__":
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	#initial socket
     s.connect((hostname, port))								#connect socket
     cmd_interpret = command_interpret(s)					#Class instance
-    ETROC1_ArrayReg1 = ETROC1_ArrayReg()                                # New a class
+    ETROC1_ArrayReg1 = ETROC1_ArrayReg()                    # New a class
     main()													#execute main function
     s.close()												#close socket
