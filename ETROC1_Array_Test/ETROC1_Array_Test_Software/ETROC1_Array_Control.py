@@ -57,19 +57,20 @@ def test_ddr3(data_num):
     cmd_interpret.write_config_reg(0, 0x0000)       # written disable
 
     cmd_interpret.write_pulse_reg(0x0040)           # reset fifo32to256pypypy
-    time.sleep(0.2)
+    time.sleep(0.1)
 
     print("sent pulse!")
 
-    cmd_interpret.write_config_reg(0, 0x0001)       # written enable
-
     write_data_into_ddr3(1, 0x0000000, 0x6000000)   # set write begin address and post trigger address and wrap around
     cmd_interpret.write_pulse_reg(0x0008)           # writing start
-    time.sleep(0.2)
+    time.sleep(0.1)
+    ## writing DDR3 first, then enable fifo32to256 write enable
+    cmd_interpret.write_config_reg(0, 0x0001)       # written enable fifo32to256
+    time.sleep(0.001)
     cmd_interpret.write_pulse_reg(0x0010)           # writing stop
 
     time.sleep(2)
-    cmd_interpret.write_config_reg(0, 0x0000)       # write enablepy
+    cmd_interpret.write_config_reg(0, 0x0000)       # write disable fifo32to256
     time.sleep(4)
     read_data_from_ddr3(0x6000000)                  # set read begin address
 
@@ -162,13 +163,15 @@ def DAC_Config(DAC_Value):
 def main():
     slaveA_addr = 0x03                          # I2C slave A address
     slaveB_addr = 0x7f                          # I2C slave B address
+    userdefinedir = "Scan_PreAmp_Peak_10fC"
+    userdefinedir_log = "Scan_PreAmp_Peak_10fC_log"
 
-    for PhaseAdjust in range(80,83):
+    for DAC_Pixel15 in range(533, 540):
         ## Parameters configuration
         # QInjection Setting2
-        QSel = 6
+        QSel = 10
         # PreAmp setting
-        CLSel = 1
+        CLSel = 0                                   # default 0
         RfSel = 3
         IBSel = 7
 
@@ -176,11 +179,11 @@ def main():
         Board_num = 1                               # Board ID show in tag
         EnScr = 1                                   # Enable Scrambler
         DMRO_revclk = 1                             # Sample clock polarity
-        Test_Pattern_Mode_Output = 1                # 0: TDC output data, 1: Counter output data
+        Test_Pattern_Mode_Output = 0                # 0: TDC output data, 1: Counter output data
         TDC_testMode = 0
         TDC_Enable = 1
-        PhaseAdj = PhaseAdjust
-        Total_point = 1                            # Total fetch data = Total_point * 50000
+        PhaseAdj = 70
+        Total_point = 4                            # Total fetch data = Total_point * 50000
 
         Fetch_Data = 1                              # Turn On fetch data
 
@@ -199,7 +202,7 @@ def main():
         DAC_P12 = 0x000
         DAC_P13 = 0x000
         DAC_P14 = 0x000
-        DAC_P15 = 0x199
+        DAC_P15 = DAC_Pixel15
         Pixel_VTHOut_Select = 15
 
         DAC_Value = [DAC_P0, DAC_P1, DAC_P2, DAC_P3, DAC_P4, DAC_P5, DAC_P6, DAC_P7, DAC_P8,\
@@ -222,7 +225,7 @@ def main():
         ETROC1_ArrayReg1.set_HysSel(0xf)
 
         EN_DiscriOut = [0x11, 0x21, 0x41, 0x81, 0x12, 0x22, 0x42, 0x82, 0x14, 0x24, 0x44, 0x84, 0x18, 0x28, 0x48, 0x88, 0xff]
-        ETROC1_ArrayReg1.set_EN_DiscriOut(EN_DiscriOut[15])
+        ETROC1_ArrayReg1.set_EN_DiscriOut(EN_DiscriOut[16])
 
     ## VDAC setting
         VTHOut_Select = [[0xfe, 0xff], [0xfd, 0xff], [0xfb, 0xff], [0xf7, 0xff], [0xef, 0xff], [0xdf, 0xff], [0xbf, 0xff], [0x7f, 0xff],\
@@ -235,11 +238,14 @@ def main():
         ETROC1_ArrayReg1.set_Dis_VTHInOut15_8(VTHOut_Select[Pixel_VTHOut_Select][1])
 
         ## Phase Shifter Setting
+        ETROC1_ArrayReg1.set_dllEnable(0)           # Enable phase shifter
+        ETROC1_ArrayReg1.set_dllCapReset(1)         # should be set to 0
+        time.sleep(0.1)
         ETROC1_ArrayReg1.set_dllCapReset(0)         # should be set to 0
         ETROC1_ArrayReg1.set_dllCPCurrent(1)        # default value 1:
         ETROC1_ArrayReg1.set_dllEnable(1)           # Enable phase shifter
         ETROC1_ArrayReg1.set_dllForceDown(0)        # should be set to 0
-        ETROC1_ArrayReg1.set_PhaseAdj(PhaseAdj)           # 0-128 to adjust clock phas
+        ETROC1_ArrayReg1.set_PhaseAdj(PhaseAdj)     # 0-128 to adjust clock phase
 
         # 320M clock strobe setting
         ETROC1_ArrayReg1.set_RefStrSel(0x03)        # default 0x03: 3.125 ns
@@ -326,7 +332,7 @@ def main():
                     print("Directory %s already exists!"%todaystr)
 
                 # add log file
-                with open("./%s/log_%s.dat"%(todaystr, time_stampe),'w+') as logfile:
+                with open("./%s/%s/log_%s.dat"%(todaystr, userdefinedir_log, time_stampe),'w+') as logfile:
                     logfile.write("%s\n"%time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
                     logfile.write("I2C write into data:\n")
                     for i in range(len(reg_val)):
@@ -346,7 +352,7 @@ def main():
                 data_out = test_ddr3(Total_point)                           ## num: The total fetch data num * 50000
 
 
-                with open("./%s/%s.dat"%(todaystr, filename),'w') as infile:
+                with open("./%s/%s/%s.dat"%(todaystr, userdefinedir, filename),'w') as infile:
                     for i in range(len(data_out)):
                         if Test_Pattern_Mode_Output == 1:
                             infile.write("%d\n"%(data_out[i]))
