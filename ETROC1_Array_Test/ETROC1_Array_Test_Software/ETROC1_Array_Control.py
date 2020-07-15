@@ -78,7 +78,7 @@ def test_ddr3(data_num):
     ## memoryview usage
     for i in range(data_num):
         data_out += cmd_interpret.read_data_fifo(50000)           # reading start
-
+        time.sleep(0.01)
     return data_out
 #--------------------------------------------------------------------------#
 ## IIC write slave device
@@ -124,6 +124,24 @@ def Enable_FPGA_Descramblber(val):
         print("Disable FPGA Descrambler")
     cmd_interpret.write_config_reg(14, 0x0001 & val)       # write enable
 #--------------------------------------------------------------------------#
+## measure supply current
+def measure_current():
+    Power_Current= {"IO_Current":0, "PA_Current":0, "QInj_Current":0, "Discri_Current":0, "Clk_Current":0, "Dig_Current":0, "3V3_Current":6.12}
+    rm = visa.ResourceManager()
+    # print(rm.list_resources())
+    inst1 = rm.open_resource('USB0::0x2A8D::0x1102::MY58041593::0::INSTR')      # top power supply
+    inst2 = rm.open_resource('USB0::0x2A8D::0x1102::MY58041595::0::INSTR')      # bottom power supply one
+    Power_Current['IO_Current'] = round(float(inst1.query("MEAS:CURR? CH1"))*1000.0, 3)             # IO power
+    Power_Current['PA_Current'] = round(float(inst1.query("MEAS:CURR? CH2"))*1000.0, 3)             # PA power
+    Power_Current['QInj_Current'] = round(float(inst1.query("MEAS:CURR? CH3"))*1000.0, 3)           # QInj power
+    Power_Current['Discri_Current'] = round(float(inst2.query("MEAS:CURR? CH1"))*1000.0, 3)         # Discri power
+    Power_Current['Clk_Current'] = round(float(inst2.query("MEAS:CURR? CH2"))*1000.0, 3)            # Clk power
+    Power_Current['Dig_Current'] = round(float(inst2.query("MEAS:CURR? CH3"))*1000.0, 3)            # Dig power
+    return Power_Current
+
+    # print(inst1.query("*IDN?"))
+    # print(inst2.query("*IDN?"))
+#--------------------------------------------------------------------------#
 ## DAC output configuration, 0x000: 0.6V  ox200: 0.8V  0x2ff: 1V
 #@para[in] num : 0-15 value: Digital input value
 def DAC_Config(DAC_Value):
@@ -163,13 +181,32 @@ def DAC_Config(DAC_Value):
 def main():
     slaveA_addr = 0x03                          # I2C slave A address
     slaveB_addr = 0x7f                          # I2C slave B address
-    userdefinedir = "Scan_PreAmp_Peak_10fC"
-    userdefinedir_log = "Scan_PreAmp_Peak_10fC_log"
+    userdefinedir = "Scan_PhaseAdj_DVDD=1V4_QInj_1M25"
+    userdefinedir_log = "Scan_PhaseAdj_DVDD=1V4_QInj_1M25_log"
+    ##  Creat a directory named path with date of today
+    today = datetime.date.today()
+    todaystr = today.isoformat() + "_Array_Test_Results"
+    try:
+        os.mkdir(todaystr)
+        print("Directory %s was created!"%todaystr)
+    except FileExistsError:
+        print("Directory %s already exists!"%todaystr)
+    userdefine_dir = todaystr + "./%s"%userdefinedir
+    userdefine_dir_log = todaystr + "./%s"%userdefinedir_log
+    try:
+        os.mkdir(userdefine_dir)
+        os.mkdir(userdefine_dir_log)
+    except FileExistsError:
+        print("User define directories already created!!!")
 
-    for DAC_Pixel15 in range(533, 540):
+
+    # for DAC_Pixel15 in range(380, 470):
+    # for DAC_Pixel0 in np.arange(400,500,5):
+    # for PhaseAdj1 in [10, 60, 110, 160, 210]:
+    for PhaseAdj1 in range(195,196):
         ## Parameters configuration
         # QInjection Setting2
-        QSel = 10
+        QSel = 6
         # PreAmp setting
         CLSel = 0                                   # default 0
         RfSel = 3
@@ -182,12 +219,12 @@ def main():
         Test_Pattern_Mode_Output = 0                # 0: TDC output data, 1: Counter output data
         TDC_testMode = 0
         TDC_Enable = 1
-        PhaseAdj = 70
+        PhaseAdj = PhaseAdj1
         Total_point = 4                            # Total fetch data = Total_point * 50000
 
         Fetch_Data = 1                              # Turn On fetch data
 
-        DAC_P0 = 0x3ff
+        DAC_P0 = 0x000
         DAC_P1 = 0x3ff
         DAC_P2 = 0x000
         DAC_P3 = 0x000
@@ -202,8 +239,8 @@ def main():
         DAC_P12 = 0x000
         DAC_P13 = 0x000
         DAC_P14 = 0x000
-        DAC_P15 = DAC_Pixel15
-        Pixel_VTHOut_Select = 15
+        DAC_P15 = 0x19f
+
 
         DAC_Value = [DAC_P0, DAC_P1, DAC_P2, DAC_P3, DAC_P4, DAC_P5, DAC_P6, DAC_P7, DAC_P8,\
                      DAC_P9, DAC_P10, DAC_P11, DAC_P12, DAC_P13, DAC_P14, DAC_P15]
@@ -212,9 +249,10 @@ def main():
 
         ## charge injection setting
         ETROC1_ArrayReg1.set_QSel(QSel)
-
-        ETROC1_ArrayReg1.set_EN_QInj7_0(0x00)       # Enable QInj7~0
-        ETROC1_ArrayReg1.set_EN_QInj15_8(0x80)      # Enable QInj15~8
+        QInj_Enable = [[0x01, 0x00], [0x02, 0x00], [0x04, 0x00], [0x08, 0x00], [0x10, 0x00], [0x20, 0x00], [0x40, 0x00], [0x80, 0x00],\
+                       [0x00, 0x01], [0x00, 0x02], [0x00, 0x04], [0x00, 0x08], [0x00, 0x10], [0x00, 0x20], [0x00, 0x40], [0x00, 0x80]]
+        ETROC1_ArrayReg1.set_EN_QInj7_0(QInj_Enable[Pixel_Num][0])       # Enable QInj7~0
+        ETROC1_ArrayReg1.set_EN_QInj15_8(QInj_Enable[Pixel_Num][1])      # Enable QInj15~8
 
         ## PreAmp setting
         ETROC1_ArrayReg1.set_CLSel(CLSel)
@@ -227,15 +265,15 @@ def main():
         EN_DiscriOut = [0x11, 0x21, 0x41, 0x81, 0x12, 0x22, 0x42, 0x82, 0x14, 0x24, 0x44, 0x84, 0x18, 0x28, 0x48, 0x88, 0xff]
         ETROC1_ArrayReg1.set_EN_DiscriOut(EN_DiscriOut[16])
 
-    ## VDAC setting
+        ## VDAC setting
         VTHOut_Select = [[0xfe, 0xff], [0xfd, 0xff], [0xfb, 0xff], [0xf7, 0xff], [0xef, 0xff], [0xdf, 0xff], [0xbf, 0xff], [0x7f, 0xff],\
                          [0xff, 0xfe], [0xff, 0xfd], [0xff, 0xfb], [0xff, 0xf7], [0xff, 0xef], [0xff, 0xdf], [0xff, 0xbf], [0xff, 0x7f], [0xff, 0xff]]
 
-        ETROC1_ArrayReg1.set_PD_DACDiscri7_0(VTHOut_Select[Pixel_VTHOut_Select][0])
-        ETROC1_ArrayReg1.set_PD_DACDiscri15_8(VTHOut_Select[Pixel_VTHOut_Select][1])
+        ETROC1_ArrayReg1.set_PD_DACDiscri7_0(VTHOut_Select[Pixel_Num][0])
+        ETROC1_ArrayReg1.set_PD_DACDiscri15_8(VTHOut_Select[Pixel_Num][1])
 
-        ETROC1_ArrayReg1.set_Dis_VTHInOut7_0(VTHOut_Select[Pixel_VTHOut_Select][0])
-        ETROC1_ArrayReg1.set_Dis_VTHInOut15_8(VTHOut_Select[Pixel_VTHOut_Select][1])
+        ETROC1_ArrayReg1.set_Dis_VTHInOut7_0(VTHOut_Select[Pixel_Num][0])
+        ETROC1_ArrayReg1.set_Dis_VTHInOut15_8(VTHOut_Select[Pixel_Num][1])
 
         ## Phase Shifter Setting
         ETROC1_ArrayReg1.set_dllEnable(0)           # Enable phase shifter
@@ -256,8 +294,10 @@ def main():
         ETROC1_ArrayReg1.set_CLKOutSel(0)           # 0: 40M clock output, 1: 320M clock or strobe output
 
         ## DMRO readout Mode
-        ETROC1_ArrayReg1.set_OE_DMRO_Row(0x8)       # DMRO readout row select
-        ETROC1_ArrayReg1.set_DMRO_Col(0x3)          # DMRO readout column select
+        DMRO_Readout_Select = [[0x01, 0x0], [0x02, 0x0], [0x04, 0x0], [0x08, 0x0], [0x01, 0x1], [0x02, 0x1], [0x04, 0x1], [0x08, 0x1],\
+                               [0x01, 0x2], [0x02, 0x2], [0x04, 0x2], [0x08, 0x2], [0x01, 0x3], [0x02, 0x3], [0x04, 0x3], [0x08, 0x3]]
+        ETROC1_ArrayReg1.set_OE_DMRO_Row(DMRO_Readout_Select[Pixel_Num][0])       # DMRO readout row select
+        ETROC1_ArrayReg1.set_DMRO_Col(DMRO_Readout_Select[Pixel_Num][1])          # DMRO readout column select
         ETROC1_ArrayReg1.set_RO_SEL(0)              # 0: DMRO readout enable  1: Simple readout enable
         ETROC1_ArrayReg1.set_TDC_enableMon(Test_Pattern_Mode_Output)       # 0: Connect to TDC       1: Connect to Test Counter
 
@@ -312,42 +352,22 @@ def main():
             for x in range(3):
                 winsound.Beep(1000, 500)
 
+        ## monitor power supply current
+        Power_current = measure_current()
+        # print(Power_current)
 
         # Receive DMRO output data and store it to dat file
         if Fetch_Data == 1:
             for k in range(1):
                 time_stampe = time.strftime('%m-%d_%H-%M-%S',time.localtime(time.time()))
                 if Test_Pattern_Mode_Output == 0:
-                    filename = "Array_T_Pixel=%02d_DAC_P15=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_TDC_testMode=%1d_PhaseAdj=%03d_B%s_%s_%s"%(Pixel_Num, DAC_P15, QSel, CLSel, RfSel, IBSel, TDC_testMode, PhaseAdj, Board_num, Total_point*50000, time_stampe)
+                    filename = "Array_T_Pixel=%d_DAC_P%d=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_PhaseAdj=%03d_B%s_%s_%s"%(Pixel_Num, Pixel_Num, DAC_P10, QSel, CLSel, RfSel, IBSel, PhaseAdj, Board_num, Total_point*50000, time_stampe)
                 else:
-                    filename = "Array_C_Pixel=%02d_DAC_P15=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_TDC_testMode=%1d_PhaseAdj=%03d_B%s_%s_%s"%(Pixel_Num, DAC_P15, QSel, CLSel, RfSel, IBSel, TDC_testMode, PhaseAdj, Board_num, Total_point*50000, time_stampe)
-
-                ##  Creat a directory named path with date of today
-                today = datetime.date.today()
-                todaystr = today.isoformat() + "_Array_Test_Results"
-                try:
-                    os.mkdir(todaystr)
-                    print("Directory %s was created!"%todaystr)
-                except FileExistsError:
-                    print("Directory %s already exists!"%todaystr)
-
-                # add log file
-                with open("./%s/%s/log_%s.dat"%(todaystr, userdefinedir_log, time_stampe),'w+') as logfile:
-                    logfile.write("%s\n"%time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
-                    logfile.write("I2C write into data:\n")
-                    for i in range(len(reg_val)):
-                        if i < 32:                                                      # I2C slave A write
-                            logfile.writelines("REGA_%02d %s\n"%(i, hex(reg_val[i])))
-                        else:                                                           # I2C slave B write
-                            logfile.writelines("REGB_%02d %s\n"%(i-32, hex(reg_val[i])))
-                    if iic_read_val == reg_val:
-                        logfile.write("Wrote into data matches with read back data!\n")
-                    else:
-                        logfile.write("Wrote in data doesn't matche with read back data!!!!\n")
-                    logfile.write("%s\n"%filename)
+                    filename = "Array_C_Pixel=%d_DAC_P%d=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_PhaseAdj=%03d_B%s_%s_%s"%(Pixel_Num, Pixel_Num, DAC_P10, QSel, CLSel, RfSel, IBSel, PhaseAdj, Board_num, Total_point*50000, time_stampe)
 
                 print("filename is: %s"%filename)
                 print("Fetching NO.%01d file..."%k)
+                time.sleep(1)
                 data_out = []
                 data_out = test_ddr3(Total_point)                           ## num: The total fetch data num * 50000
 
@@ -367,6 +387,22 @@ def main():
                             # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
                             infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
 
+                # add log file
+                with open("./%s/%s/log_%s.dat"%(todaystr, userdefinedir_log, time_stampe),'w+') as logfile:
+                    logfile.write("%s\n"%time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
+                    logfile.write("I2C write into data:\n")
+                    for i in range(len(reg_val)):
+                        if i < 32:                                                      # I2C slave A write
+                            logfile.writelines("REGA_%02d %s\n"%(i, hex(reg_val[i])))
+                        else:                                                           # I2C slave B write
+                            logfile.writelines("REGB_%02d %s\n"%(i-32, hex(reg_val[i])))
+                    if iic_read_val == reg_val:
+                        logfile.write("Wrote into data matches with read back data!\n")
+                    else:
+                        logfile.write("Wrote in data doesn't matche with read back data!!!!\n")
+                    logfile.write("%s\n"%filename)
+                    for x, y in Power_current.items():
+                        logfile.write("%s %.3f\n"%(x, y))
 #--------------------------------------------------------------------------#
 ## if statement
 if __name__ == "__main__":
