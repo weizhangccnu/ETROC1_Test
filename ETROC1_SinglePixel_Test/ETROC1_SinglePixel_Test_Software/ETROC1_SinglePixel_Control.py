@@ -72,14 +72,14 @@ def test_ddr3(data_num):
         data_out += cmd_interpret.read_data_fifo(50000)           # reading start
     return data_out
 #--------------------------------------------------------------------------#
-## IIC write slave device
+## IIC write subordinate device
 # @param mode[1:0] : '0'is 1 bytes read or wirte, '1' is 2 bytes read or write, '2' is 3 bytes read or write
-# @param slave[7:0] : slave device address
+# @param subordinate[7:0] : subordinate device address
 # @param wr: 1-bit '0' is write, '1' is read
 # @param reg_addr[7:0] : register address
 # @param data[7:0] : 8-bit write data
-def iic_write(mode, slave_addr, wr, reg_addr, data):
-    val = mode << 24 | slave_addr << 17 | wr << 16 | reg_addr << 8 | data
+def iic_write(mode, subordinate_addr, wr, reg_addr, data):
+    val = mode << 24 | subordinate_addr << 17 | wr << 16 | reg_addr << 8 | data
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
     time.sleep(0.01)
@@ -87,19 +87,19 @@ def iic_write(mode, slave_addr, wr, reg_addr, data):
     time.sleep(0.01)
     # print(hex(val))
 #--------------------------------------------------------------------------#
-## IIC read slave device
+## IIC read subordinate device
 # @param mode[1:0] : '0'is 1 bytes read or wirte, '1' is 2 bytes read or write, '2' is 3 bytes read or write
-# @param slave[7:0]: slave device address
+# @param subordinate[7:0]: subordinate device address
 # @param wr: 1-bit '0' is write, '1' is read
 # @param reg_addr[7:0] : register address
-def iic_read(mode, slave_addr, wr, reg_addr):
-    val = mode << 24 | slave_addr << 17 |  0 << 16 | reg_addr << 8 | 0x00	  # write device addr and reg addr
+def iic_read(mode, subordinate_addr, wr, reg_addr):
+    val = mode << 24 | subordinate_addr << 17 |  0 << 16 | reg_addr << 8 | 0x00	  # write device addr and reg addr
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
     time.sleep(0.01)
     cmd_interpret.write_pulse_reg(0x0001)				                      # Sent a pulse to IIC module
 
-    val = mode << 24 | slave_addr << 17 | wr << 16 | reg_addr << 8 | 0x00	  # write device addr and read one byte
+    val = mode << 24 | subordinate_addr << 17 | wr << 16 | reg_addr << 8 | 0x00	  # write device addr and read one byte
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
     time.sleep(0.01)
@@ -117,7 +117,7 @@ def Enable_FPGA_Descramblber(val):
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
-    slave_addr = 0x4E                                               # I2C slave address
+    subordinate_addr = 0x4E                                               # I2C subordinate address
     reg_val = []
     ETROC1_SinglePixelReg1 = ETROC1_SinglePixelReg()                # New a class
     reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
@@ -125,12 +125,12 @@ def main():
     print("I2C write in data:")
     print(reg_val)
     for i in range(len(reg_val)):                                   # Write data into I2C register
-        iic_write(1, slave_addr, 0, i, int(reg_val[i], 16))
+        iic_write(1, subordinate_addr, 0, i, int(reg_val[i], 16))
     time.sleep(0.1)
 
     iic_read_val = []
     for i in range(len(reg_val)):                                   # Read back I2C register value
-        iic_read_val += [iic_read(0, slave_addr, 1, i)]
+        iic_read_val += [iic_read(0, subordinate_addr, 1, i)]
     print("I2C read back data:")
     print(iic_read_val)
     print("Ok!")
