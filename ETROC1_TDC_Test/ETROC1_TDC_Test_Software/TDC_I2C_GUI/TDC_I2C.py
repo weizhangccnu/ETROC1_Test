@@ -21,16 +21,16 @@ This script is used for testing ETROC1 TDC chip. The mianly function of this scr
 '''
 hostname = '192.168.2.3'					#FPGA IP address
 port = 1024									#port number
-I2C_Slave_Addr = 0x22
+I2C_Subordinate_Addr = 0x22
 #--------------------------------------------------------------------------#
-## IIC write slave device
+## IIC write subordinate device
 # @param mode[1:0] : '0'is 1 bytes read or wirte, '1' is 2 bytes read or write, '2' is 3 bytes read or write
-# @param slave[7:0] : slave device address
+# @param subordinate[7:0] : subordinate device address
 # @param wr: 1-bit '0' is write, '1' is read
 # @param reg_addr[7:0] : register address
 # @param data[7:0] : 8-bit write data
-def iic_write(mode, slave_addr, wr, reg_addr, data):
-    val = mode << 24 | slave_addr << 17 | wr << 16 | reg_addr << 8 | data
+def iic_write(mode, subordinate_addr, wr, reg_addr, data):
+    val = mode << 24 | subordinate_addr << 17 | wr << 16 | reg_addr << 8 | data
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
     time.sleep(0.01)
@@ -38,19 +38,19 @@ def iic_write(mode, slave_addr, wr, reg_addr, data):
     time.sleep(0.01)
     # print(hex(val))
 #--------------------------------------------------------------------------#
-## IIC read slave device
+## IIC read subordinate device
 # @param mode[1:0] : '0'is 1 bytes read or wirte, '1' is 2 bytes read or write, '2' is 3 bytes read or write
-# @param slave[7:0]: slave device address
+# @param subordinate[7:0]: subordinate device address
 # @param wr: 1-bit '0' is write, '1' is read
 # @param reg_addr[7:0] : register address
-def iic_read(mode, slave_addr, wr, reg_addr):
-    val = mode << 24 | slave_addr << 17 |  0 << 16 | reg_addr << 8 | 0x00	  # write device addr and reg addr
+def iic_read(mode, subordinate_addr, wr, reg_addr):
+    val = mode << 24 | subordinate_addr << 17 |  0 << 16 | reg_addr << 8 | 0x00	  # write device addr and reg addr
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
     time.sleep(0.01)
     cmd_interpret.write_pulse_reg(0x0001)				                      # Sent a pulse to IIC module
 
-    val = mode << 24 | slave_addr << 17 | wr << 16 | reg_addr << 8 | 0x00	  # write device addr and read one byte
+    val = mode << 24 | subordinate_addr << 17 | wr << 16 | reg_addr << 8 | 0x00	  # write device addr and read one byte
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
     time.sleep(0.01)
@@ -716,12 +716,12 @@ class Ui_ETROC1_TDC_TEST_GUI(object):
         font.setWeight(75)
         self.I2C_Configuration_Label.setFont(font)
         self.I2C_Configuration_Label.setObjectName("I2C_Configuration_Label")
-        self.Slave_Addr_Label = QtWidgets.QLabel(self.centralwidget)
-        self.Slave_Addr_Label.setGeometry(QtCore.QRect(85, 710, 71, 21))
+        self.Subordinate_Addr_Label = QtWidgets.QLabel(self.centralwidget)
+        self.Subordinate_Addr_Label.setGeometry(QtCore.QRect(85, 710, 71, 21))
         font = QtGui.QFont()
         font.setPointSize(10)
-        self.Slave_Addr_Label.setFont(font)
-        self.Slave_Addr_Label.setObjectName("Slave_Addr_Label")
+        self.Subordinate_Addr_Label.setFont(font)
+        self.Subordinate_Addr_Label.setObjectName("Subordinate_Addr_Label")
         self.Salve_Addr = QtWidgets.QComboBox(self.centralwidget)
         self.Salve_Addr.setGeometry(QtCore.QRect(158, 710, 51, 22))
         self.Salve_Addr.setObjectName("Salve_Addr")
@@ -860,18 +860,18 @@ class Ui_ETROC1_TDC_TEST_GUI(object):
         self.Pulse_Sel_Label.setText(_translate("ETROC1_TDC_TEST_GUI", "Pulse_Sel[7:0]"))
         self.TDCRawData_Sel_Label.setText(_translate("ETROC1_TDC_TEST_GUI", "TDCRawData_Sel"))
         self.I2C_Configuration_Label.setText(_translate("ETROC1_TDC_TEST_GUI", "I2C Configuration"))
-        self.Slave_Addr_Label.setText(_translate("ETROC1_TDC_TEST_GUI", "Slave_Addr"))
+        self.Subordinate_Addr_Label.setText(_translate("ETROC1_TDC_TEST_GUI", "Subordinate_Addr"))
         self.Salve_Addr.setItemText(0, _translate("ETROC1_TDC_TEST_GUI", "0x22"))
         self.Salve_Addr.setItemText(1, _translate("ETROC1_TDC_TEST_GUI", "0x23"))
 
     def Salve_Addr_currentIndexChanged(self):
         winsound.Beep(1000, 100)
         if self.Salve_Addr.currentText() == "0x22":
-            I2C_Slave_Addr = 0x22
-            print("I2C Slave address: 0x22")
+            I2C_Subordinate_Addr = 0x22
+            print("I2C Subordinate address: 0x22")
         else:
-            I2C_Slave_Addr = 0x22
-            print("I2C Slave address: 0x23")
+            I2C_Subordinate_Addr = 0x22
+            print("I2C Subordinate address: 0x23")
 
     def Pulse_enableRx_valueChanged(self):
         winsound.Beep(1000, 100)
@@ -1095,11 +1095,11 @@ class Ui_ETROC1_TDC_TEST_GUI(object):
         print("TDC I2C Write in data:")
         print(TDC_I2C_Reg)
         for i in range(len(TDC_I2C_Reg)):
-            iic_write(1, I2C_Slave_Addr, 0, i, TDC_I2C_Reg[i])
+            iic_write(1, I2C_Subordinate_Addr, 0, i, TDC_I2C_Reg[i])
         print("TDC I2C Read back data:")
         iic_read_val = []
         for j in range(len(TDC_I2C_Reg)):
-            iic_read_val += [iic_read(0, I2C_Slave_Addr, 1, j)]
+            iic_read_val += [iic_read(0, I2C_Subordinate_Addr, 1, j)]
         print(iic_read_val)
 
 if __name__ == "__main__":

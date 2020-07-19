@@ -81,14 +81,14 @@ def test_ddr3(data_num):
         time.sleep(0.01)
     return data_out
 #--------------------------------------------------------------------------#
-## IIC write slave device
+## IIC write subordinate device
 # @param mode[1:0] : '0'is 1 bytes read or wirte, '1' is 2 bytes read or write, '2' is 3 bytes read or write
-# @param slave[7:0] : slave device address
+# @param subordinate[7:0] : subordinate device address
 # @param wr: 1-bit '0' is write, '1' is read
 # @param reg_addr[7:0] : register address
 # @param data[7:0] : 8-bit write data
-def iic_write(mode, slave_addr, wr, reg_addr, data):
-    val = mode << 24 | slave_addr << 17 | wr << 16 | reg_addr << 8 | data
+def iic_write(mode, subordinate_addr, wr, reg_addr, data):
+    val = mode << 24 | subordinate_addr << 17 | wr << 16 | reg_addr << 8 | data
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
     time.sleep(0.01)
@@ -96,19 +96,19 @@ def iic_write(mode, slave_addr, wr, reg_addr, data):
     time.sleep(0.01)
 
 #--------------------------------------------------------------------------#
-## IIC read slave device
+## IIC read subordinate device
 # @param mode[1:0] : '0'is 1 bytes read or wirte, '1' is 2 bytes read or write, '2' is 3 bytes read or write
-# @param slave[6:0]: slave device address
+# @param subordinate[6:0]: subordinate device address
 # @param wr: 1-bit '0' is write, '1' is read
 # @param reg_addr[7:0] : register address
-def iic_read(mode, slave_addr, wr, reg_addr):
-    val = mode << 24 | slave_addr << 17 |  0 << 16 | reg_addr << 8 | 0x00	  # write device addr and reg addr
+def iic_read(mode, subordinate_addr, wr, reg_addr):
+    val = mode << 24 | subordinate_addr << 17 |  0 << 16 | reg_addr << 8 | 0x00	  # write device addr and reg addr
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
     time.sleep(0.01)
     cmd_interpret.write_pulse_reg(0x0001)				                      # Sent a pulse to IIC module
 
-    val = mode << 24 | slave_addr << 17 | wr << 16 | reg_addr << 8 | 0x00	  # write device addr and read one byte
+    val = mode << 24 | subordinate_addr << 17 | wr << 16 | reg_addr << 8 | 0x00	  # write device addr and read one byte
     cmd_interpret.write_config_reg(4, 0xffff & val)
     cmd_interpret.write_config_reg(5, 0xffff & (val>>16))
     time.sleep(0.01)
@@ -179,8 +179,8 @@ def DAC_Config(DAC_Value):
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
-    slaveA_addr = 0x03                          # I2C slave A address
-    slaveB_addr = 0x7f                          # I2C slave B address
+    subordinateA_addr = 0x03                          # I2C subordinate A address
+    subordinateB_addr = 0x7f                          # I2C subordinate B address
     userdefinedir = "Scan_PhaseAdj_DVDD=1V4_QInj_1M25"
     userdefinedir_log = "Scan_PhaseAdj_DVDD=1V4_QInj_1M25_log"
     ##  Creat a directory named path with date of today
@@ -322,23 +322,23 @@ def main():
         reg_val = ETROC1_ArrayReg1.get_config_vector()                      # Get Array Pixel Register default data
 
         ## write data to I2C register one by one
-        print("Write data into I2C slave:")
+        print("Write data into I2C subordinate:")
         print(reg_val)
         for i in range(len(reg_val)):
             time.sleep(0.01)
-            if i < 32:                                                      # I2C slave A write
-                iic_write(1, slaveA_addr, 0, i, reg_val[i])
-            else:                                                           # I2C slave B write
-                iic_write(1, slaveB_addr, 0, i-32, reg_val[i])
+            if i < 32:                                                      # I2C subordinate A write
+                iic_write(1, subordinateA_addr, 0, i, reg_val[i])
+            else:                                                           # I2C subordinate B write
+                iic_write(1, subordinateB_addr, 0, i-32, reg_val[i])
 
         ## read back data from I2C register one by one
         iic_read_val = []
         for j in range(len(reg_val)):
             time.sleep(0.01)
             if j < 32:
-                iic_read_val += [iic_read(0, slaveA_addr, 1, j)]            # I2C slave A read
+                iic_read_val += [iic_read(0, subordinateA_addr, 1, j)]            # I2C subordinate A read
             else:
-                iic_read_val += [iic_read(0, slaveB_addr, 1, j-32)]         # I2C slave B read
+                iic_read_val += [iic_read(0, subordinateB_addr, 1, j-32)]         # I2C subordinate B read
         print("I2C read back data:")
         print(iic_read_val)
 
@@ -392,9 +392,9 @@ def main():
                     logfile.write("%s\n"%time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
                     logfile.write("I2C write into data:\n")
                     for i in range(len(reg_val)):
-                        if i < 32:                                                      # I2C slave A write
+                        if i < 32:                                                      # I2C subordinate A write
                             logfile.writelines("REGA_%02d %s\n"%(i, hex(reg_val[i])))
-                        else:                                                           # I2C slave B write
+                        else:                                                           # I2C subordinate B write
                             logfile.writelines("REGB_%02d %s\n"%(i-32, hex(reg_val[i])))
                     if iic_read_val == reg_val:
                         logfile.write("Wrote into data matches with read back data!\n")
