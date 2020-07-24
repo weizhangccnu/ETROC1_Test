@@ -217,7 +217,7 @@ class ETROC1_ArrayReg(object):
         self._regMap['ROI15_8'] = 0xff & val
 
     def set_TDC_autoReset(self, val):                               # 1: TDC auto reset active, 0: TDC auto reset isn't active.
-        self._regMap['PD_DACDiscri7_0'] = 0x1 & val
+        self._regMap['TDC_autoReset'] = 0x1 & val
 
     def set_TDC_enableMon(self, val):                               # 1: Enable TDC raw data output, 0: Disable TDC raw data output.
         self._regMap['TDC_enableMon'] = 0x1 & val
