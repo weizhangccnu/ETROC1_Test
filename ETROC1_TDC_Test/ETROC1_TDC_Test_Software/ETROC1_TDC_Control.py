@@ -110,28 +110,34 @@ def Enable_FPGA_Descrablber(val):
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
-    # rm = visa.ResourceManager()
-    # print(rm.list_resources())
-    # inst = rm.open_resource('GPIB2::10::INSTR')                 # connect to SOC
-    # print(inst.query("*IDN?"))                                  # Instrument ID
-    #
-    # inst.write(":OUTPut1:STATE ON")                             # Enable CH1 output
-    # inst.write(":SOURce:FUNCtion1:SHAPe PULSe")                 # Pulse mode
 
     slave_addr = 0x23                                       # I2C slave address
+
+    userdefinedir = "Jitter_Performance_P%d_QInj=1M25_V1"
+
+    ##  Creat a directory named path with date of today
+    today = datetime.date.today()
+    todaystr = today.isoformat() + "_Standalone_TDC_Test_Results"
+    try:
+        os.mkdir(todaystr)
+        print("Directory %s was created!"%todaystr)
+    except FileExistsError:
+        print("Directory %s already exists!"%todaystr)
+    userdefine_dir = todaystr + "./%s"%userdefinedir
+    try:
+        os.mkdir(userdefine_dir)
+    except FileExistsError:
+        print("User define directories already created!!!")
+
+    ## setting parameters
+    Pulse_Strobe = 0x03                 # 0x03: 3.125 ns Cal Code
+    testMode = 0                        # 0: nromal mode 1: test mode
+    polaritySel = 1                     # 0: high power mode, 1: low power mode
+    Total_point = 4                     # total fetch data = Total_point * 50000
+    fetch_data = 1
+
     reg_val = []
     ETROC1_TDCReg1 = ETROC1_TDCReg()
-
-    ## Reset TDC
-    ETROC1_TDCReg1.set_TDC_resetn(0)
-
-    reg_val = ETROC1_TDCReg1.get_config_vector()
-    print("I2C write in data:")
-    print(reg_val)
-    for i in range(len(reg_val)):
-        iic_write(1, slave_addr, 0, i, reg_val[i])
-    time.sleep(0.1)
-
     ## GRO Test Contorl
     ETROC1_TDCReg1.set_GRO_Start(1)
     ETROC1_TDCReg1.set_GRO_TOA_CK(1)
@@ -150,11 +156,9 @@ def main():
     ETROC1_TDCReg1.set_Dataout_Sel(1)
 
     ## Strobe pulse setting
-    ETROC1_TDCReg1.set_Pulse_Sel(0x03)
+    ETROC1_TDCReg1.set_Pulse_Sel(Pulse_Strobe)
 
-    ## Clock 320M pulse setting
-    # ETROC1_TDCReg1.set_Clk320M_Psel(1)
-    # ETROC1_TDCReg1.set_Clk40M_Psel(1)
+
     ## DMRO setting
     ETROC1_TDCReg1.set_DMRO_testMode(0)
     ETROC1_TDCReg1.set_DMRO_enable(0)           ## enable Scrambler
@@ -164,13 +168,13 @@ def main():
     ETROC1_TDCReg1.set_DMRO_revclk(0)
     ## TDC setting
     ETROC1_TDCReg1.set_TDC_resetn(1)
-    ETROC1_TDCReg1.set_TDC_testMode(0)
+    ETROC1_TDCReg1.set_TDC_testMode(testMode)
     ETROC1_TDCReg1.set_TDC_autoReset(0)
     ETROC1_TDCReg1.set_TDC_enable(1)
-    # ETROC1_TDCReg1.set_TDC_level(3)s
+    ETROC1_TDCReg1.set_TDC_level(1)
     ETROC1_TDCReg1.set_TDCRawData_Sel(0)
 
-    ETROC1_TDCReg1.set_TDC_polaritySel(1)       ## 1: low power mode 0: high power mode
+    ETROC1_TDCReg1.set_TDC_polaritySel(polaritySel)       ## 1: low power mode 0: high power mode
     ETROC1_TDCReg1.set_TDC_timeStampMode(0)
 
     reg_val = ETROC1_TDCReg1.get_config_vector()
@@ -183,7 +187,16 @@ def main():
         iic_read_val += [iic_read(0, slave_addr, 1, i)]
     print("I2C read back data:")
     print(iic_read_val)
-    print("Ok!")
+
+    # compare I2C write in data with I2C read back data
+    if iic_read_val == reg_val:
+        print("Wrote into data matches with read back data!")
+        winsound.Beep(1000, 500)
+    else:
+        print("Wrote into data doesn't matche with read back data!!!!")
+        for x in range(3):
+            winsound.Beep(1000, 500)
+
 
     readonly_reg = [0x21, 0x22, 0x23, 0x24]
     readonly_val = []
@@ -196,52 +209,32 @@ def main():
     print("TOA_Code: %d"%TOA_Code)
     print("TOT_Code: %d"%TOT_Code)
     print("Cal_Code: %d"%Cal_Code)
-    # TOT_Width = [1.12, 1.87, 4.194, 6.092, 6.706, 7.940, 9.664, 4.196, 9.666]
-    # TOT_Width = [0.442]
-    # try:
-    #     for m in range(530,5225):
-    #         width = 0.002 * m
-    #     # for m in range(len(TOT_Width)):
-    #     #     width = TOT_Width[m]
-    #         print("TOT width: %.3f"%width)
-    #         inst.write(":SOURce:PULSe:WIDTh1 %sns"%width)
-    #         time.sleep(2)
-            # TOA_Average = 430
-            # n = 0
-            # for m in range(3):
-            #     if TOA_Average < 423 or TOA_Average > 428:
-    filename = "TDC_Verify_20200609.dat"
-    print(filename)
 
-    with open(filename, 'w') as infile:
-        for k in range(1):
-            # print("Fetching NO.%01d file..."%k)
-            data_out = [0]
-            data_out = test_ddr3(2)                          ## num: The total fetch data num * 50000
-            TOA_Code = []
-            TOT_Code = []
-            Cal_Code = []
-            for i in range(len(data_out)):
-                TDC_data = []
-                for j in range(30):
-                    TDC_data += [((data_out[i] >> j) & 0x1)]
-                hitFlag = TDC_data[29]
-                TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
-                TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
-                Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
-                TOA_Code += [TOA_Code1]
-                TOT_Code += [TOT_Code1]
-                Cal_Code += [Cal_Code1]
+    if fetch_data == 1:                 # fetch data switch
+        time_stamp = time.strftime('%m-%d_%H-%M-%S',time.localtime(time.time()))
+        filename = "TDC_Data_TestMode=%d_polaritySel=%d_Pulse_Strobe=%s_%s_%s"%(testMode, polaritySel, Pulse_Strobe, Total_point*50000, time_stamp)
+        with open(filename, 'w') as infile:
+            for k in range(1):
+                # print("Fetching NO.%01d file..."%k)
+                data_out = [0]
+                data_out = test_ddr3(Total_point)      # num: The total fetch data num * 50000
+                TOA_Code = []
+                TOT_Code = []
+                Cal_Code = []
+                for i in range(len(data_out)):
+                    TDC_data = []
+                    for j in range(30):
+                        TDC_data += [((data_out[i] >> j) & 0x1)]
+                    hitFlag = TDC_data[29]
+                    TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
+                    TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
+                    Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
+                    TOA_Code += [TOA_Code1]
+                    TOT_Code += [TOT_Code1]
+                    Cal_Code += [Cal_Code1]
 
-                infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
-            # TOA_Average = np.mean(TOA_Code)
-            # print("TOA Code Average value: %2.f"%TOA_Average)
-    #             else:
-    #                 n += 1
-    #                 if n == 3:
-    #                     raise ValueError("Value error!")
-    # except ValueError as e:
-    #     pass
+                    infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
+
 if __name__ == "__main__":
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	#initial socket
 	s.connect((hostname, port))								#connect socket
