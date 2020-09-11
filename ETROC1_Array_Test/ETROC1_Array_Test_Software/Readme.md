@@ -49,3 +49,7 @@
 
 **5.** Verify DDR3 data fecthing function.
   - The DDR3 capacity is 1G Byte. So the total number should be less than 1G Bytes.
+
+## 6. Known issues on ETROC1 Array Boards
+**1.** The lable between **VDD_CLK** and **VDD_DISCRI** was swapped by mistake on ETROC1 Array Board skillscreen.
+**2.** The lable between **SCL** and **SDA** for I2C communication was swapped by mistake on ETROC1 Array Board skillscreen.
