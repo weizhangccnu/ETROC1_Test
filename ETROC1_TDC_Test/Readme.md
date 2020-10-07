@@ -1,7 +1,7 @@
 ## 1. Documents Organization
   - **ETROC1_TDC_Design_Document:** This document is used to guide the ETROC1 TDC test.
   - **ETROC1_TDC_Test_Firmware:** To organize the ETROC1 TDC test related firmware.
-  - **ETROC1_TDC_Test_Software:** To organize the ETROC1 TDC test Python scprit.
+  - **ETROC1_TDC_Test_Software:** To organize the ETROC1 TDC test Python script.
   - **Si5338_EVB_Document:** To organize the *Si5338* EVB related documents and configuration files.
   - **Img:** To store readme file used images or figures.
  
@@ -25,9 +25,10 @@ port = 1024					#port number
 ![I2C interface mapping](https://github.com/weizhangccnu/ETROC1_Test/blob/master/ETROC1_TDC_Test/Img/I2C_Interface_Mapping.png)
 
 ## 3. Test Software (mainly python scripts)
-  - There are two python files located on ETROC1_TDC_Test_Software directory and named *command_interpret.py* and *kc705_mig_control.py*, respectively.
+  - There are two python files located on ETROC1_TDC_Test_Software directory and named `command_interpret.py`, `ETROC1_TDCReg.py`, and `kc705_mig_control.py`, respectively.
     - The **command_interpret.py** file maily includes a class for socket communication.
-    - The **kc705_mig_control.py** file includes all kinds of functions such as I2C write/read, DDR3 data store and fetch, Ethernet communication and so on.
+    - The **ETROC1_TDCReg.py** file maily includes a class of ETROC1 TDC register definition.
+    - The **ETROC1_TDC_Control.py** file includes all kinds of functions such as I2C write/read, DDR3 data store and fetch, Ethernet communication and so on.
   - Python version: **Python 3.7.5** is the python version that we used now.
   - **Atom editor** is the python script execution environment at SMU.
   - Before you execute the list one python scripts, you should make sure that all the modules imported at the begin of each python file have already been installed. Otherwise, you have to install all used modules with the command of `pip install modulename`.

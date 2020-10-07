@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import struct
+import time
 '''
 @author: Wei Zhang
 @date: 2018-01-05
@@ -73,9 +74,10 @@ class command_interpret:
     ## read_data_fifo
     # @param[in] Cnt read data counts 0-65535
     def read_data_fifo(self, Cnt):
-        data = 0x00190000 + Cnt                             #write sDataFifoHigh address = 25
-        self.ss.sendall(struct.pack('I',data)[::-1])
+        data = 0x00190000 + (Cnt -1)                             #write sDataFifoHigh address = 25
+        self.ss.sendall(struct.pack('I', data)[::-1])
         mem_data = []
-        for i in range(Cnt):
-            mem_data += [(struct.unpack('I', self.ss.recv(4)[::-1])[0])]
+        for i in range(Cnt-1):
+            mem_data += [struct.unpack('I', self.ss.recv(4)[::-1])[0]]
+        mem_data += [struct.unpack('I', self.ss.recv(4)[::-1])[0]]
         return mem_data
