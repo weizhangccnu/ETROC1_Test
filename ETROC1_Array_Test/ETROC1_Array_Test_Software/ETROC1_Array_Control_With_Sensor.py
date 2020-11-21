@@ -200,10 +200,10 @@ def main():
     # Source_Meter_Remote_Control()
     # for i in range(2, 16):
     if True:
-        Pixel_Num = 15                              # range from 0-15
+        Pixel_Num = 0                              # range from 0-15
 
-        userdefinedir = "P%s_Phase_Scan_QSel=15fC_QInj=1M25_HV=-200V_SB1"%Pixel_Num
-        userdefinedir_log = "P%s_DAC_Scan_QSel=15fC_QInj=1M25_HV=-200V_SB1_log"%Pixel_Num
+        userdefinedir = "P%s_PhaseAdj_Scan_QSel=15fC_QInj=1M25_HV=-200V_SB1"%Pixel_Num
+        userdefinedir_log = "P%s_PhaseAdj_Scan_QSel=15fC_QInj=1M25_HV=-200V_SB1_log"%Pixel_Num
         # userdefinedir = "Scan_PhaseAdj_Counter_QInj_1M25"
         # userdefinedir_log = "Scan_PhaseAdj_Counter_QInj_1M25log"
         ##  Creat a directory named path with date of today
@@ -230,8 +230,8 @@ def main():
             # for DAC_Pixel in range(DAC_Pixel_List[Pixel][0], DAC_Pixel_List[Pixel][1], 3):
 
         # for DAC_Pixel15 in range(410,445):
-        # for DAC_Pixel in range(400, 500):
-        for PhaseAdj1 in range(30, 181):
+        # for DAC_Pixel in [476]:
+        for PhaseAdj1 in range(30, 60):
         # for PhaseAdj1 in range(195,210,2):
             # QInjection Setting
             QSel = 15
@@ -251,7 +251,7 @@ def main():
             External_RST = 0                            # 1: reset   0: didn't reset
             Fetch_Data = 1                              # Turn On fetch data
 
-            DAC_P0 = 0x000
+            DAC_P0 = 480
             DAC_P1 = 0x000
             DAC_P2 = 0x000
             DAC_P3 = 0x000
@@ -266,10 +266,10 @@ def main():
             DAC_P12 = 0x000
             DAC_P13 = 0x000
             DAC_P14 = 0x000
-            DAC_P15 = 420
+            DAC_P15 = 0x000
 
             # print(DAC_Pixel)
-            DAC_Pixel = DAC_P15
+            DAC_Pixel = DAC_P0
             DAC_Value = [DAC_P0, DAC_P1, DAC_P2, DAC_P3, DAC_P4, DAC_P5, DAC_P6, DAC_P7, DAC_P8,\
                          DAC_P9, DAC_P10, DAC_P11, DAC_P12, DAC_P13, DAC_P14, DAC_P15]
             # DAC_Value[Pixel_Num] = DAC_Pixel
@@ -314,9 +314,21 @@ def main():
             ETROC1_ArrayReg1.set_Dis_VTHInOut15_8(VTHOut_Select[Pixel_Num][1])
 
             ## Phase Shifter Setting
-            ETROC1_ArrayReg1.set_dllEnable(0)           # Enable phase shifter
-            ETROC1_ArrayReg1.set_dllCapReset(1)         # should be set to 0
+            ETROC1_ArrayReg1.set_dllEnable(0)           # Disable phase shifter
+            ETROC1_ArrayReg1.set_dllCapReset(1)         # set to high level and keep more than 200 ns.
             time.sleep(0.1)
+
+            reg_val = ETROC1_ArrayReg1.get_config_vector()                      # Get Array Pixel Register default data
+
+            ## write data to I2C register one by one
+            # print("Write data into I2C slave:")
+            for i in range(len(reg_val)):
+                time.sleep(0.01)
+                if i < 32:                                                      # I2C slave A write
+                    iic_write(1, slaveA_addr, 0, i, reg_val[i])
+                else:                                                           # I2C slave B write
+                    iic_write(1, slaveB_addr, 0, i-32, reg_val[i])
+
             ETROC1_ArrayReg1.set_dllCapReset(0)         # should be set to 0
             ETROC1_ArrayReg1.set_dllCPCurrent(1)        # default value 1:
             ETROC1_ArrayReg1.set_dllEnable(1)           # Enable phase shifter
