@@ -69,7 +69,7 @@ def test_ddr3(data_num):
     time.sleep(0.1)
     cmd_interpret.write_pulse_reg(0x0010)           # writing stop
 
-    time.sleep(1)
+    time.sleep(5)
     cmd_interpret.write_config_reg(0, 0x0000)       # write disable fifo32to256
     time.sleep(3)
     read_data_from_ddr3(0x0600000)                  # set read begin address
@@ -193,10 +193,11 @@ def simple_readout(write_num):
 
 #--------------------------------------------------------------------------#
 ## hitflag threshold setting
-#@param[in]: hitflag_threshold: BC0 and L1ACC loop number, 0-65535
-def hitflag_threshold(hitflag_threshold):
-    cmd_interpret.write_config_reg(16, 0xffff & hitflag_threshold)      # write enable
-
+#@param[in]: hitflag_threshold: set hitflag threshold, 0-65535
+#@param[in]: Zero compression : 1: normal mode, 0: zero compression mode
+def hitflag_threshold(hitflag_threshold, val):
+    cmd_interpret.write_config_reg(16, 0xffff & hitflag_threshold)      # hitflag threshold
+    cmd_interpret.write_config_reg(16, 0xffff & val)                    # Zero compression 
 #--------------------------------------------------------------------------#
 ## main functionl
 def main():
@@ -245,9 +246,10 @@ def main():
         PhaseAdj = 20
         Total_point = 1                             # Total fetch data = Total_point * 50000
         External_RST = 0                            # 1: reset   0: didn't reset
-        hitflag_threshold(100)
+        hitflag_threshold(100, 0)                   # first param for hitflag_threshold, second param for mode select, 0: Continuous mode 1: non-continuous mode
         Fetch_Data = 1                              # Turn On fetch data
         Data_Format = 1                             # 1: Debug data format (TOA, TOT, Cal, hitflag) 0: Real time data format (30-bit data)
+        
 
         DAC_P0 = 0x000
         DAC_P1 = 0x000
