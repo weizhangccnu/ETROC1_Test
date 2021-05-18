@@ -120,6 +120,8 @@ def main():
     slave_addr = 0x4E                                               # I2C slave address
     reg_val = []
     ETROC1_SinglePixelReg1 = ETROC1_SinglePixelReg()                # New a class
+    
+    ETROC1_SinglePixelReg1.set_EN_QInj(1)                           # 1: enable charge injection, 0: disable charge injection
     reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
 
     print("I2C write in data:")
