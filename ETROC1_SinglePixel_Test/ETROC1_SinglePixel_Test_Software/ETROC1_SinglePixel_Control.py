@@ -49,24 +49,23 @@ def read_data_from_ddr3(rd_stop_addr):
 ## test ddr3
 def test_ddr3(data_num):
     cmd_interpret.write_config_reg(0, 0x0000)       # written disable
-    cmd_interpret.write_pulse_reg(0x0040)           # reset ddr3 control logic
-    time.sleep(0.01)
-    cmd_interpret.write_pulse_reg(0x0004)           # reset ddr3 data fifo
+
+    cmd_interpret.write_pulse_reg(0x0004)           # reset ddr3 logic, data fifo, and fifo32to256 
     time.sleep(0.01)
     print("sent pulse!")
-
-    cmd_interpret.write_config_reg(0, 0x0001)       # written enable
 
     write_data_into_ddr3(1, 0x0000000, 0x6000000)   # set write begin address and post trigger address and wrap around
     cmd_interpret.write_pulse_reg(0x0008)           # writing start
     cmd_interpret.write_pulse_reg(0x0010)           # writing stop
+    time.sleep(0.1)                             
+    cmd_interpret.write_config_reg(0, 0x0001)       # fifo32to256 writen enablee 
 
-    time.sleep(1)
-    cmd_interpret.write_config_reg(0, 0x0000)       # write enable
+    time.sleep(2)                                   # delay 2s to receive data
+    cmd_interpret.write_config_reg(0, 0x0000)       # fifo32to256 write disablee
     time.sleep(3)
     read_data_from_ddr3(0x6000000)                  # set read begin address
 
-    data_out = []
+    data_out = []                                   # initial a list to save ddr3 data
     ## memoryview usage
     for i in range(data_num):
         data_out += cmd_interpret.read_data_fifo(50000)           # reading start
