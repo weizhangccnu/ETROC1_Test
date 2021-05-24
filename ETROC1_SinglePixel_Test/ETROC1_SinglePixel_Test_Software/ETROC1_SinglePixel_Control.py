@@ -7,24 +7,19 @@ import visa
 import struct
 import socket
 import heartrate
-from command_interpret import *
-from ETROC1_SinglePixelReg import *
 import numpy as np
 from command_interpret import *
+from ETROC1_SinglePixelReg import *
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 '''
 @author: Wei Zhang
-@date: 2018-03-20
-This script is used for testing ETROC1 TDC chip. The mianly function of this script is I2C write and read, Ethernet communication, instrument control and so on.
+@date: 2021-05-24
+This script is used for testing ETROC1 SinglePixel chip. The mianly function of this script is I2C write and read, Ethernet communication, instrument control and so on.
 '''
 hostname = '192.168.2.3'					#FPGA IP address
 port = 1024									#port number
-#--------------------------------------------------------------------------#
-## plot parameters
-lw_grid = 0.5                   # grid linewidth
-fig_dpi = 800                   # save figure's resolution
 #--------------------------------------------------------------------------#
 ## DDR3 write data to external device
 # @param[in] wr_wrap: wrap address
@@ -47,29 +42,29 @@ def read_data_from_ddr3(rd_stop_addr):
     cmd_interpret.write_pulse_reg(0x0020)           # reading start
 #--------------------------------------------------------------------------#
 ## test ddr3
+# @param[in] data_num: set fetch data number
 def test_ddr3(data_num):
     cmd_interpret.write_config_reg(0, 0x0000)       # written disable
-    cmd_interpret.write_pulse_reg(0x0040)           # reset ddr3 control logic
-    time.sleep(0.01)
-    cmd_interpret.write_pulse_reg(0x0004)           # reset ddr3 data fifo
-    time.sleep(0.01)
+    cmd_interpret.write_pulse_reg(0x0040)           # reset fifo32to256
+    time.sleep(0.1)
     print("sent pulse!")
 
-    cmd_interpret.write_config_reg(0, 0x0001)       # written enable
-
-    write_data_into_ddr3(1, 0x0000000, 0x6000000)   # set write begin address and post trigger address and wrap around
+    write_data_into_ddr3(1, 0x0000000, 0x0600000)   # set write begin address and post trigger address and wrap around
     cmd_interpret.write_pulse_reg(0x0008)           # writing start
+    time.sleep(0.1)
+    cmd_interpret.write_config_reg(0, 0x0001)       # written enable fifo32to256
+
+    time.sleep(0.1)
     cmd_interpret.write_pulse_reg(0x0010)           # writing stop
 
     time.sleep(1)
-    cmd_interpret.write_config_reg(0, 0x0000)       # write enable
+    cmd_interpret.write_config_reg(0, 0x0000)       # write disable fifo32to256
     time.sleep(3)
-    read_data_from_ddr3(0x6000000)                  # set read begin address
+    read_data_from_ddr3(0x0600000)                  # set read begin address
 
     data_out = []
-    ## memoryview usage
-    for i in range(data_num):
-        data_out += cmd_interpret.read_data_fifo(50000)           # reading start
+    for i in range(data_num):                       # reading start
+        data_out += cmd_interpret.read_data_fifo(50000)           
     return data_out
 #--------------------------------------------------------------------------#
 ## IIC write slave device
@@ -118,12 +113,57 @@ def Enable_FPGA_Descramblber(val):
 ## main functionl
 def main():
     slave_addr = 0x4E                                               # I2C slave address
+    
+    userdefineddir = "Single_Pixel_QSel=15fC_Qinj=1M25_Phase=100_B1"
+    userdefineddir = "Single_Pixel_QSel=15fC_Qinj=1M25_Phase=100_B1_log"
+
+    today = datetime.date.today()
+    todaystr = today.isoformat() + "_Array_Test_Results"
+    try:
+        os.mkdir(todaystr)
+        print("Directory %s was created!"%todaystr)
+    except FileExistsError:
+        print("Directory %s has already existed!"%todaystr)
+
+    userdefine_dir = todaystr + "./%s"%userdefineddir
+    userdefine_dir_log = todaystr + "./%s"%userdefineddir_log
+    try:
+        os.mkdir(userdefine_dir)
+        os.mkdir(userdefine_dir_log)
+        print("User defined directories was created!!!")
+    except FileExistsError:
+        print("User defined directories have already existed!!!")
+
+    # charge injection settings
+    Enable_QInj = 1                                                 # Enable charge injection
+    QSel = 20
+    # PreAmp settings
+    CLSel = 0                                                       # PreAmp capacitor load
+    RfSel = 2                                                       # PreAmp feedback resistor
+    IBSel = 7                                                       # PreAmp Bias current
+    # Discriminator settings
+    HysSel = 0xf                                                    # Discriminator Hysteresis
+    # DAC settings
+    DAC = 400
+    # TDC settings
+
+    Test_Pattern_Output = 1                                         # 1: Data from test pattern, 0: Data from TDC
+    Enable_FPGA_Descrambler = 1                                     # 1: Enable FPGA Descrambler, 0: Disable FPGA Descrambler
+
+    Fetch_Data = 0                                                  # 1: Turn on fetch data switch, 0: Turn off fetch data switch
+    
+
     reg_val = []
     ETROC1_SinglePixelReg1 = ETROC1_SinglePixelReg()                # New a class
     
-    ETROC1_SinglePixelReg1.set_EN_QInj(1)                           # 1: enable charge injection, 0: disable charge injection
-    reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
+    ETROC1_SinglePixelReg1.set_VTHIn7_0(DAC & 0xff)                 # DAC value configuration
+    ETROC1_SinglePixelReg1.set_VTHIn9_8((DAC >> 8) & 0xff)
 
+    ETROC1_SinglePixelReg1.set_EN_QInj(Enable_QInj)                 # 1: enable charge injection, 0: disable charge injection
+    ETROC1_SinglePixelReg1.set_TDC_selRawCode(Test_Pattern_Output)  # 1: data comes from Test Pattern, 0: data comes from TDC
+
+    Enable_FPGA_Descramblber(Enable_FPGA_Descrambler)               # 1: Enable FPGA Descrambler 0: Disable FPGA Descrambler
+    reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
     print("I2C write in data:")
     print(reg_val)
     for i in range(len(reg_val)):                                   # Write data into I2C register
@@ -135,25 +175,39 @@ def main():
         iic_read_val += [iic_read(0, slave_addr, 1, i)]
     print("I2C read back data:")
     print(iic_read_val)
-    print("Ok!")
 
 
-    # for k in range(1):
-    #     print("Fetching NO.%01d file..."%k)
-    #     data_out = [0]
-    #     data_out = test_ddr3(400)                          ## num: The total fetch data num * 50000
-    #     # print(data_out)
-    #     with open("./20200211_Test_Results/TDC_Converted_Data_20000000P_B4_Pulse=0x03_VDD1V2_10M0000625Hz_%01d.dat"%(k),'w') as infile:
-    #         for i in range(len(data_out)):
-    #             TDC_data = []
-    #             for j in range(30):
-    #                 TDC_data += [((data_out[i] >> j) & 0x1)]
-    #             hitFlag = TDC_data[29]
-    #             TOT_Code1 = TDC_data[0] << 8 | TDC_data[1] << 7 | TDC_data[2] << 6 | TDC_data[3] << 5 | TDC_data[4] << 4 | TDC_data[5] << 3 | TDC_data[6] << 2 | TDC_data[7] << 1 | TDC_data[8]
-    #             TOA_Code1 = TDC_data[9] << 9 | TDC_data[10] << 8 | TDC_data[11] << 7 | TDC_data[12] << 6 | TDC_data[13] << 5 | TDC_data[14] << 4 | TDC_data[15] << 3 | TDC_data[16] << 2 | TDC_data[17] << 1 | TDC_data[18]
-    #             Cal_Code1 = TDC_data[19] << 9 | TDC_data[20] << 8 | TDC_data[21] << 7 | TDC_data[22] << 6 | TDC_data[23] << 5 | TDC_data[24] << 4 | TDC_data[25] << 3 | TDC_data[26] << 2 | TDC_data[27] << 1 | TDC_data[28]
-    #             # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
-    #             infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
+    # Receive DMRO output data and store it to dat file
+    if Fetch_Data == 1:
+        time_stampe = time.strftime('%m-%d_%H-%M-%S',time.localtime(time.time()))
+        if Test_Pattern_Output == 1:
+            filename = "SinglePixel_TEST_DAC=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_PhaseAdj=%03d_B%s_%s_%s.dat"%(DAC_Value, QSel, CLSel, RfSel, IBSel, PhaseAdj, Board_num, Total_point*50000, time_stampe)
+        else:
+            filename = "SinglePixel_TDC_DAC=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_PhaseAdj=%03d_B%s_%s_%s.dat"%(DAC_Value, QSel, CLSel, RfSel, IBSel, PhaseAdj, Board_num, Total_point*50000, time_stampe)
+        
+        print("filename is: %s"%filename)
+        print("Fetching file...")
+        time.sleep(1)
+        data_out = []
+        data_out = test_ddr3(Total_point)                           ## num: The total fetch data num * 50000
+
+        with open("./%s/%s/%s"%(todaystr, userdefinedir, filename),'w') as infile:
+            for i in range(len(data_out)):
+                if Test_Pattern_Output == 1:
+                    Bit = (data_out[i] & 0x3ff00000) >> 20
+                    VthIN = (data_out[i] & 0x000f0000) >> 16
+                    Counter = data_out[i] & 0x0000ffff
+                    infile.write("%3d %2d %5d\n"%(Bit, VthIN, Counter))
+                else:
+                    TDC_data = []
+                    for j in range(30):
+                        TDC_data += [((data_out[i] >> j) & 0x1)]
+                    hitFlag = TDC_data[0]
+                    TOT_Code1 = TDC_data[29] << 8 | TDC_data[28] << 7 | TDC_data[27] << 6 | TDC_data[26] << 5 | TDC_data[25] << 4 | TDC_data[24] << 3 | TDC_data[23] << 2 | TDC_data[22] << 1 | TDC_data[21]
+                    TOA_Code1 = TDC_data[20] << 9 | TDC_data[19] << 8 | TDC_data[18] << 7 | TDC_data[17] << 6 | TDC_data[16] << 5 | TDC_data[15] << 4 | TDC_data[14] << 3 | TDC_data[13] << 2 | TDC_data[12] << 1 | TDC_data[11]
+                    Cal_Code1 = TDC_data[10] << 9 | TDC_data[9] << 8 | TDC_data[8] << 7 | TDC_data[7] << 6 | TDC_data[6] << 5 | TDC_data[5] << 4 | TDC_data[4] << 3 | TDC_data[3] << 2 | TDC_data[2] << 1 | TDC_data[1]
+                    # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
+                    infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
 
 #--------------------------------------------------------------------------#
 ## if statement
