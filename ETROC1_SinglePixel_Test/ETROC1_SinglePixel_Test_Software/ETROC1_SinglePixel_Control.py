@@ -45,20 +45,31 @@ def read_data_from_ddr3(rd_stop_addr):
 # @param[in] data_num: set fetch data number
 def test_ddr3(data_num):
     cmd_interpret.write_config_reg(0, 0x0000)       # written disable
+<<<<<<< HEAD
     cmd_interpret.write_pulse_reg(0x0040)           # reset fifo32to256
     time.sleep(0.1)
     print("sent pulse!")
 
     write_data_into_ddr3(1, 0x0000000, 0x0600000)   # set write begin address and post trigger address and wrap around
+=======
+
+    cmd_interpret.write_pulse_reg(0x0004)           # reset ddr3 logic, data fifo, and fifo32to256 
+    time.sleep(0.01)
+    print("sent pulse!")
+
+    write_data_into_ddr3(1, 0x0000000, 0x6000000)   # set write begin address and post trigger address and wrap around
+>>>>>>> d5b5ad58263f6aafd0e3c39427869dbe0fb92f07
     cmd_interpret.write_pulse_reg(0x0008)           # writing start
     time.sleep(0.1)
     cmd_interpret.write_config_reg(0, 0x0001)       # written enable fifo32to256
 
     time.sleep(0.1)
     cmd_interpret.write_pulse_reg(0x0010)           # writing stop
+    time.sleep(0.1)                             
+    cmd_interpret.write_config_reg(0, 0x0001)       # fifo32to256 writen enablee 
 
-    time.sleep(1)
-    cmd_interpret.write_config_reg(0, 0x0000)       # write disable fifo32to256
+    time.sleep(1)                                   # delay 2s to receive data
+    cmd_interpret.write_config_reg(0, 0x0000)       # fifo32to256 write disablee
     time.sleep(3)
     read_data_from_ddr3(0x0600000)                  # set read begin address
 
