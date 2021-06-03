@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 import sys
 import copy
 import time
 import visa
 import struct
 import socket
+import datetime
+import winsound
 import heartrate
 import numpy as np
 from command_interpret import *
@@ -55,13 +58,11 @@ def test_ddr3(data_num):
     cmd_interpret.write_config_reg(0, 0x0001)       # written enable fifo32to256
 
     time.sleep(0.1)
-    cmd_interpret.write_pulse_reg(0x0010)           # writing stop
-    time.sleep(0.1)                             
-    cmd_interpret.write_config_reg(0, 0x0001)       # fifo32to256 writen enablee 
+    cmd_interpret.write_pulse_reg(0x0010)           # writing stop                           
 
-    time.sleep(1)                                   # delay 2s to receive data
+    time.sleep(3)                                   # delay 2s to receive data
     cmd_interpret.write_config_reg(0, 0x0000)       # fifo32to256 write disablee
-    time.sleep(3)
+    time.sleep(2)
     read_data_from_ddr3(0x0600000)                  # set read begin address
 
     data_out = []
@@ -116,11 +117,11 @@ def Enable_FPGA_Descramblber(val):
 def main():
     slave_addr = 0x4E                                               # I2C slave address
     
-    userdefineddir = "Single_Pixel_QSel=15fC_Qinj=1M25_Phase=100_B1"
-    userdefineddir = "Single_Pixel_QSel=15fC_Qinj=1M25_Phase=100_B1_log"
+    userdefineddir = "Single_Pixel_Phase_Scan_FS20"
+    userdefineddir_log = "Single_Pixel_Phase_Scan_FS20_log"
 
     today = datetime.date.today()
-    todaystr = today.isoformat() + "_Array_Test_Results"
+    todaystr = today.isoformat() + "_SinglePixel_Test_Results"
     try:
         os.mkdir(todaystr)
         print("Directory %s was created!"%todaystr)
@@ -136,6 +137,9 @@ def main():
     except FileExistsError:
         print("User defined directories have already existed!!!")
 
+    # board info
+    Board_num = 20
+
     # charge injection settings
     Enable_QInj = 1                                                 # Enable charge injection
     QSel = 20
@@ -145,31 +149,87 @@ def main():
     IBSel = 7                                                       # PreAmp Bias current
     # Discriminator settings
     HysSel = 0xf                                                    # Discriminator Hysteresis
+    EN_DiscriOut = 1                                                # 1: Enable discriminator output, 0: Disable discriminator output 
     # DAC settings
-    DAC = 400
-    # TDC settings
+    DAC = 270                                                       # DAC value        
+    # Phase shifter settings
+    PhaseAdj = 30                                                   # Phase shifter value
 
-    Test_Pattern_Output = 1                                         # 1: Data from test pattern, 0: Data from TDC
+    Test_Pattern_Output = 0                                         # 1: Data comes from test pattern, 0: Data comes from TDC
     Enable_FPGA_Descrambler = 1                                     # 1: Enable FPGA Descrambler, 0: Disable FPGA Descrambler
-
-    Fetch_Data = 0                                                  # 1: Turn on fetch data switch, 0: Turn off fetch data switch
+    Total_point = 1                                                 # Total_point * 50000 will be read out
+    Fetch_Data = 1                                                  # 1: Turn on fetch data switch, 0: Turn off fetch data switch
     
-
     reg_val = []
     ETROC1_SinglePixelReg1 = ETROC1_SinglePixelReg()                # New a class
-    
-    ETROC1_SinglePixelReg1.set_VTHIn7_0(DAC & 0xff)                 # DAC value configuration
-    ETROC1_SinglePixelReg1.set_VTHIn9_8((DAC >> 8) & 0xff)
+
+    # clock input and output MUX select
+    ETROC1_SinglePixelReg1.set_TestCLK0(0)                          # 0: 40M and 320M clock comes from phase shifter, 1: 40M and 320M clock comes from external pads
+    ETROC1_SinglePixelReg1.set_TestCLK1(0)                          # 0: 40M and 320M  go cross clock strobe 1: 40M and 320M bypass
+    ETROC1_SinglePixelReg1.set_CLKOutSel(0)                         # 0: 40M clock output, 1: 320M clock or strobe output
+
+    ETROC1_SinglePixelReg1.set_QSel(QSel)                           # set charge injection, from 0 to 31
+
+    ETROC1_SinglePixelReg1.set_CLSel(CLSel)                         # set load capacitor of pre-Amplifier
+
+    ETROC1_SinglePixelReg1.set_RfSel(RfSel)                         # set feedback resistor
+
+    ETROC1_SinglePixelReg1.set_IBSel(IBSel)                         # set Bias current value
+
+    ETROC1_SinglePixelReg1.set_HysSel(HysSel)                       # set discriminator hysteresis
 
     ETROC1_SinglePixelReg1.set_EN_QInj(Enable_QInj)                 # 1: enable charge injection, 0: disable charge injection
-    ETROC1_SinglePixelReg1.set_TDC_selRawCode(Test_Pattern_Output)  # 1: data comes from Test Pattern, 0: data comes from TDC
+    
+    ETROC1_SinglePixelReg1.set_VTHIn7_0(DAC & 0xff)                 # DAC value configuration
+    ETROC1_SinglePixelReg1.set_VTHIn9_8((DAC >> 8) & 0x3)
+
+    ETROC1_SinglePixelReg1.set_Dis_VTHInOut(0)                      # 1: Disable DAC voltage output, 0: Enable DAC voltage output
+
+    ETROC1_SinglePixelReg1.set_PD_DACDiscri(0)                      # 1: Power down DAC and Discriminator, 0: Power on DAC and Discriminator
+
+    ETROC1_SinglePixelReg1.set_EN_DiscriOut(EN_DiscriOut)           # 1: Enable discriminator output, 0: Disable discriminator output
+
+    ## Phase Shifter Setting
+    ETROC1_SinglePixelReg1.set_dllEnable(0)                         # Disable phase shifter
+    ETROC1_SinglePixelReg1.set_dllCapReset(1)                       # set to high level and keep more than 200 ns.
+    time.sleep(0.1)
+
+    reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
+    print("I2C write into data:")
+    print(reg_val)
+    for i in range(len(reg_val)):                                   # Write data into I2C register
+        iic_write(1, slave_addr, 0, i, reg_val[i])
+
+    ETROC1_SinglePixelReg1.set_dllCapReset(0)                       # should be set to 0
+    ETROC1_SinglePixelReg1.set_dllCPCurrent(1)                      # default value 1:
+    ETROC1_SinglePixelReg1.set_dllEnable(1)                         # Enable phase shifter
+    ETROC1_SinglePixelReg1.set_dllForceDown(0)                      # should be set to 0
+    ETROC1_SinglePixelReg1.set_PhaseAdj(PhaseAdj)                   # 0-128 to adjust clock phase
+
+    ETROC1_SinglePixelReg1.set_RefStrSel(0x03)                      # Pluse strobe = 3.125 ns
+
+    ETROC1_SinglePixelReg1.set_TDC_autoReset(0)                     # 1: TDC autoreset active, 0: TDC autoreset inactive
+    ETROC1_SinglePixelReg1.set_TDC_enableMon(Test_Pattern_Output)   # 1: data comes from Test Pattern, 0: data comes from TDC
+    ETROC1_SinglePixelReg1.set_TDC_enable(1)                        # 1: enable TDC, 0: disable TDC
+    ETROC1_SinglePixelReg1.set_TDC_polaritySel(0)                   # 1: High power mdoe, 0: Low power mdoe.
+    ETROC1_SinglePixelReg1.set_TDC_selRawCode(0)                    # always 0
+    ETROC1_SinglePixelReg1.set_TDC_testMode(0)                      # 1: TDC work on test mode, 0: TDC work on normal mode
+    ETROC1_SinglePixelReg1.set_TDC_timeStampMode(0)                 # 1: Cal = Cal-TOA, 0: Cal=Cal
+    ETROC1_SinglePixelReg1.set_TDC_level(2)                         # 1: Cal = Cal-TOA, 0: Cal=Cal
+
+    ETROC1_SinglePixelReg1.set_DMRO_resetn(1)                       # DMRO reset, low active
+    ETROC1_SinglePixelReg1.set_DMRO_ENScr(1)                        # 1: Enable Scrambler in DMRO, 0: Disable Scrambler in DMRO
+    ETROC1_SinglePixelReg1.set_DMRO_revclk(1)                       # set DMRO clock polarity
+    ETROC1_SinglePixelReg1.set_DMRO_testMode(0)                     # 1: Test Mode, PRBS7 output, 0: normal Mode
+    ETROC1_SinglePixelReg1.set_OE_DMRO(1)                           # 1: Enable DMRO output, 0: Disable DMRO output
 
     Enable_FPGA_Descramblber(Enable_FPGA_Descrambler)               # 1: Enable FPGA Descrambler 0: Disable FPGA Descrambler
     reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
-    print("I2C write in data:")
+
+    print("I2C write into data:")
     print(reg_val)
     for i in range(len(reg_val)):                                   # Write data into I2C register
-        iic_write(1, slave_addr, 0, i, int(reg_val[i], 16))
+        iic_write(1, slave_addr, 0, i, reg_val[i])
     time.sleep(0.1)
 
     iic_read_val = []
@@ -178,14 +238,22 @@ def main():
     print("I2C read back data:")
     print(iic_read_val)
 
+    # compare I2C write in data with I2C read back data
+    if iic_read_val == reg_val:
+        print("Wrote into data matches with read back data!")
+        winsound.Beep(1000, 500)
+    else:
+        print("Wrote into data doesn't matche with read back data!!!!")
+        for x in range(3):
+            winsound.Beep(1000, 500)
 
     # Receive DMRO output data and store it to dat file
     if Fetch_Data == 1:
         time_stampe = time.strftime('%m-%d_%H-%M-%S',time.localtime(time.time()))
         if Test_Pattern_Output == 1:
-            filename = "SinglePixel_TEST_DAC=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_PhaseAdj=%03d_B%s_%s_%s.dat"%(DAC_Value, QSel, CLSel, RfSel, IBSel, PhaseAdj, Board_num, Total_point*50000, time_stampe)
+            filename = "SinglePixel_TEST_DAC=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_PhaseAdj=%03d_%s_%s.dat"%(DAC, QSel, CLSel, RfSel, IBSel, PhaseAdj, Total_point*50000, time_stampe)
         else:
-            filename = "SinglePixel_TDC_DAC=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_PhaseAdj=%03d_B%s_%s_%s.dat"%(DAC_Value, QSel, CLSel, RfSel, IBSel, PhaseAdj, Board_num, Total_point*50000, time_stampe)
+            filename = "SinglePixel_TDC_DAC=%d_QSel=%d_CLSel=%d_RfSel=%d_IBSel=%d_PhaseAdj=%03d_%s_%s.dat"%(DAC, QSel, CLSel, RfSel, IBSel, PhaseAdj, Total_point*50000, time_stampe)
         
         print("filename is: %s"%filename)
         print("Fetching file...")
@@ -193,13 +261,14 @@ def main():
         data_out = []
         data_out = test_ddr3(Total_point)                           ## num: The total fetch data num * 50000
 
-        with open("./%s/%s/%s"%(todaystr, userdefinedir, filename),'w') as infile:
+        with open("./%s/%s/%s"%(todaystr, userdefineddir, filename),'w') as infile:
             for i in range(len(data_out)):
                 if Test_Pattern_Output == 1:
                     Bit = (data_out[i] & 0x3ff00000) >> 20
                     VthIN = (data_out[i] & 0x000f0000) >> 16
                     Counter = data_out[i] & 0x0000ffff
                     infile.write("%3d %2d %5d\n"%(Bit, VthIN, Counter))
+
                 else:
                     TDC_data = []
                     for j in range(30):
