@@ -48,22 +48,22 @@ def read_data_from_ddr3(rd_stop_addr):
 # @param[in] data_num: set fetch data number
 def test_ddr3(data_num):
     cmd_interpret.write_config_reg(0, 0x0000)       # written disable
-    cmd_interpret.write_pulse_reg(0x0004)           # reset ddr3 logic, data fifo, and fifo32to256 
-    time.sleep(0.01)
+    cmd_interpret.write_pulse_reg(0x0040)           # reset ddr3 logic, data fifo, and fifo32to256 
+    time.sleep(0.1)
     print("sent pulse!")
 
-    write_data_into_ddr3(1, 0x0000000, 0x6000000)   # set write begin address and post trigger address and wrap around
+    write_data_into_ddr3(1, 0x0000000, 0x0700000)   # set write begin address and post trigger address and wrap around
     cmd_interpret.write_pulse_reg(0x0008)           # writing start
     time.sleep(0.1)
     cmd_interpret.write_config_reg(0, 0x0001)       # written enable fifo32to256
 
-    time.sleep(0.1)
+    time.sleep(0.5)
     cmd_interpret.write_pulse_reg(0x0010)           # writing stop                           
 
     time.sleep(3)                                   # delay 2s to receive data
     cmd_interpret.write_config_reg(0, 0x0000)       # fifo32to256 write disablee
-    time.sleep(2)
-    read_data_from_ddr3(0x0600000)                  # set read begin address
+    time.sleep(1)
+    read_data_from_ddr3(0x0700000)                  # set read begin address
 
     data_out = []
     for i in range(data_num):                       # reading start
@@ -153,7 +153,7 @@ def main():
     # DAC settings
     DAC = 270                                                       # DAC value        
     # Phase shifter settings
-    PhaseAdj = 30                                                   # Phase shifter value
+    PhaseAdj = 10                                                   # Phase shifter value
 
     Test_Pattern_Output = 0                                         # 1: Data comes from test pattern, 0: Data comes from TDC
     Enable_FPGA_Descrambler = 1                                     # 1: Enable FPGA Descrambler, 0: Disable FPGA Descrambler
@@ -193,7 +193,6 @@ def main():
     ETROC1_SinglePixelReg1.set_dllEnable(0)                         # Disable phase shifter
     ETROC1_SinglePixelReg1.set_dllCapReset(1)                       # set to high level and keep more than 200 ns.
     time.sleep(0.1)
-
     reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
     print("I2C write into data:")
     print(reg_val)
@@ -215,13 +214,17 @@ def main():
     ETROC1_SinglePixelReg1.set_TDC_selRawCode(0)                    # always 0
     ETROC1_SinglePixelReg1.set_TDC_testMode(0)                      # 1: TDC work on test mode, 0: TDC work on normal mode
     ETROC1_SinglePixelReg1.set_TDC_timeStampMode(0)                 # 1: Cal = Cal-TOA, 0: Cal=Cal
-    ETROC1_SinglePixelReg1.set_TDC_level(2)                         # 1: Cal = Cal-TOA, 0: Cal=Cal
+    ETROC1_SinglePixelReg1.set_TDC_level(2)                         # TDC encode error tolerance level
+    ETROC1_SinglePixelReg1.set_TDC_resetn(1)                        # TDC reset, low active
 
     ETROC1_SinglePixelReg1.set_DMRO_resetn(1)                       # DMRO reset, low active
     ETROC1_SinglePixelReg1.set_DMRO_ENScr(1)                        # 1: Enable Scrambler in DMRO, 0: Disable Scrambler in DMRO
     ETROC1_SinglePixelReg1.set_DMRO_revclk(1)                       # set DMRO clock polarity
     ETROC1_SinglePixelReg1.set_DMRO_testMode(0)                     # 1: Test Mode, PRBS7 output, 0: normal Mode
     ETROC1_SinglePixelReg1.set_OE_DMRO(1)                           # 1: Enable DMRO output, 0: Disable DMRO output
+
+    ETROC1_SinglePixelReg1.set_Dataout_AmplSel(7)                   # CML driver output strength
+    ETROC1_SinglePixelReg1.set_Dataout_disBIAS(0)                   # CML driver bias current disable
 
     Enable_FPGA_Descramblber(Enable_FPGA_Descrambler)               # 1: Enable FPGA Descrambler 0: Disable FPGA Descrambler
     reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
@@ -246,6 +249,7 @@ def main():
         print("Wrote into data doesn't matche with read back data!!!!")
         for x in range(3):
             winsound.Beep(1000, 500)
+    time.sleep(1)
 
     # Receive DMRO output data and store it to dat file
     if Fetch_Data == 1:
@@ -279,7 +283,6 @@ def main():
                     Cal_Code1 = TDC_data[10] << 9 | TDC_data[9] << 8 | TDC_data[8] << 7 | TDC_data[7] << 6 | TDC_data[6] << 5 | TDC_data[5] << 4 | TDC_data[4] << 3 | TDC_data[3] << 2 | TDC_data[2] << 1 | TDC_data[1]
                     # print(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag)
                     infile.write("%3d %3d %3d %d\n"%(TOA_Code1, TOT_Code1, Cal_Code1, hitFlag))
-
 #--------------------------------------------------------------------------#
 ## if statement
 if __name__ == "__main__":
