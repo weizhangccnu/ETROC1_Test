@@ -117,8 +117,8 @@ def Enable_FPGA_Descramblber(val):
 def main():
     slave_addr = 0x4E                                               # I2C slave address
     
-    userdefineddir = "Single_Pixel_DAC_Scan_FS20"
-    userdefineddir_log = "Single_Pixel_DAC_Scan_FS20_log"
+    userdefineddir = "Single_Pixel_Phase_Scan_FS20"
+    userdefineddir_log = "Single_Pixel_Phase_Scan_FS20_log"
 
     today = datetime.date.today()
     todaystr = today.isoformat() + "_SinglePixel_Test_Results"
@@ -137,12 +137,12 @@ def main():
     except FileExistsError:
         print("User defined directories have already existed!!!")
 
-    for DCAVal in range(220,331):                                            # scan phase shfiter
+    for PhaseVal in [50]:                                            # scan phase shfiter
         # board info
         Board_num = 20
 
         # charge injection settings
-        Enable_QInj = 1                                                 # Enable charge injection
+        Enable_QInj = 0                                                 # Enable charge injection
         QSel = 20
         # PreAmp settings
         CLSel = 0                                                       # PreAmp capacitor load
@@ -150,11 +150,11 @@ def main():
         IBSel = 7                                                       # PreAmp Bias current
         # Discriminator settings
         HysSel = 0xf                                                    # Discriminator Hysteresis
-        EN_DiscriOut = 1                                                # 1: Enable discriminator output, 0: Disable discriminator output 
+        EN_DiscriOut = 0                                                # 1: Enable discriminator output, 0: Disable discriminator output 
         # DAC settings
-        DAC = DCAVal                                                       # DAC value        
+        DAC = 290                                                       # DAC value        
         # Phase shifter settings
-        PhaseAdj = 20                                                # Phase shifter value
+        PhaseAdj = PhaseVal                                                # Phase shifter value
 
         Test_Pattern_Output = 0                                         # 1: Data comes from test pattern, 0: Data comes from TDC
         Enable_FPGA_Descrambler = 1                                     # 1: Enable FPGA Descrambler, 0: Disable FPGA Descrambler
@@ -204,7 +204,7 @@ def main():
         ETROC1_SinglePixelReg1.set_dllCPCurrent(1)                      # default value 1:
         ETROC1_SinglePixelReg1.set_dllEnable(1)                         # Enable phase shifter
         ETROC1_SinglePixelReg1.set_dllForceDown(0)                      # should be set to 0
-        ETROC1_SinglePixelReg1.set_PhaseAdj(PhaseAdj)                   # 0-128 to adjust clock phase
+        ETROC1_SinglePixelReg1.set_PhaseAdj(PhaseAdj)                   # 0-255 to adjust clock phase
 
         ETROC1_SinglePixelReg1.set_RefStrSel(0x03)                      # Pluse strobe = 3.125 ns
 
@@ -224,8 +224,11 @@ def main():
         ETROC1_SinglePixelReg1.set_DMRO_testMode(0)                     # 1: Test Mode, PRBS7 output, 0: normal Mode
         ETROC1_SinglePixelReg1.set_OE_DMRO(1)                           # 1: Enable DMRO output, 0: Disable DMRO output
 
-        ETROC1_SinglePixelReg1.set_Dataout_AmplSel(7)                   # CML driver output strength
-        ETROC1_SinglePixelReg1.set_Dataout_disBIAS(0)                   # CML driver bias current disable
+        ETROC1_SinglePixelReg1.set_Dataout_AmplSel(7)                   # Set CML driver output strength, from 0 to 7
+        ETROC1_SinglePixelReg1.set_Dataout_disBIAS(0)                   # 1: Disable CML driver bias current, 0: Enable bias current
+
+        ETROC1_SinglePixelReg1.set_Clk1G28_enableRx(0)                  # 1: Enable 1.28G clock input eRx, 0: Disable 1.28G clock input eRx
+        ETROC1_SinglePixelReg1.set_QInj_enableRx(0)                     # 1: Enable QInj clock input eRx, 0: Disable QInj clock input eRx
 
         Enable_FPGA_Descramblber(Enable_FPGA_Descrambler)               # 1: Enable FPGA Descrambler 0: Disable FPGA Descrambler
         reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
@@ -237,7 +240,7 @@ def main():
         time.sleep(0.1)
 
         iic_read_val = []
-        for i in range(len(reg_val)):                                   # Read back I2C register value
+        for i in range(len(reg_val)):                                   # Read back from I2C register
             iic_read_val += [iic_read(0, slave_addr, 1, i)]
         print("I2C read back data:")
         print(iic_read_val)
@@ -273,7 +276,6 @@ def main():
                         VthIN = (data_out[i] & 0x000f0000) >> 16
                         Counter = data_out[i] & 0x0000ffff
                         infile.write("%3d %2d %5d\n"%(Bit, VthIN, Counter))
-
                     else:
                         TDC_data = []
                         for j in range(30):
