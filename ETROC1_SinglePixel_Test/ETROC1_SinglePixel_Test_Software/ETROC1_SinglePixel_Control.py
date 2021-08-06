@@ -116,9 +116,9 @@ def Enable_FPGA_Descramblber(val):
 ## main functionl
 def main():
     slave_addr = 0x4E                                               # I2C slave address
-    
-    userdefineddir = "Single_Pixel_Phase_Scan_FS20"
-    userdefineddir_log = "Single_Pixel_Phase_Scan_FS20_log"
+
+    userdefineddir = "Phase_Scan_TDCData1_FS20"
+    userdefineddir_log = "Phase_Scan_TDCData1_FS20_log"
 
     today = datetime.date.today()
     todaystr = today.isoformat() + "_SinglePixel_Test_Results"
@@ -137,12 +137,12 @@ def main():
     except FileExistsError:
         print("User defined directories have already existed!!!")
 
-    for PhaseVal in [50]:                                            # scan phase shfiter
+    for PhaseValue in range(0, 256):                                            # scan phase shfiter
         # board info
         Board_num = 20
 
         # charge injection settings
-        Enable_QInj = 0                                                 # Enable charge injection
+        Enable_QInj = 1                                                 # Enable charge injection
         QSel = 20
         # PreAmp settings
         CLSel = 0                                                       # PreAmp capacitor load
@@ -150,12 +150,13 @@ def main():
         IBSel = 7                                                       # PreAmp Bias current
         # Discriminator settings
         HysSel = 0xf                                                    # Discriminator Hysteresis
-        EN_DiscriOut = 0                                                # 1: Enable discriminator output, 0: Disable discriminator output 
+        EN_DiscriOut = 1                                                # 1: Enable discriminator output, 0: Disable discriminator output 
         # DAC settings
-        DAC = 290                                                       # DAC value        
+        DAC = 340                                                       # DAC value        
         # Phase shifter settings
-        PhaseAdj = PhaseVal                                                # Phase shifter value
+        PhaseAdj = PhaseValue                                           # Phase shifter value
 
+        DMRO_testMode = 0                                               # 1: Test Mode, PRBS7 output, 0: normal Mode
         Test_Pattern_Output = 0                                         # 1: Data comes from test pattern, 0: Data comes from TDC
         Enable_FPGA_Descrambler = 1                                     # 1: Enable FPGA Descrambler, 0: Disable FPGA Descrambler
         Total_point = 1                                                 # Total_point * 50000 will be read out
@@ -219,16 +220,16 @@ def main():
         ETROC1_SinglePixelReg1.set_TDC_resetn(1)                        # TDC reset, low active
 
         ETROC1_SinglePixelReg1.set_DMRO_resetn(1)                       # DMRO reset, low active
-        ETROC1_SinglePixelReg1.set_DMRO_ENScr(1)                        # 1: Enable Scrambler in DMRO, 0: Disable Scrambler in DMRO
+        ETROC1_SinglePixelReg1.set_DMRO_ENScr(Enable_FPGA_Descrambler)  # 1: Enable Scrambler in DMRO, 0: Disable Scrambler in DMRO
         ETROC1_SinglePixelReg1.set_DMRO_revclk(1)                       # set DMRO clock polarity
-        ETROC1_SinglePixelReg1.set_DMRO_testMode(0)                     # 1: Test Mode, PRBS7 output, 0: normal Mode
+        ETROC1_SinglePixelReg1.set_DMRO_testMode(DMRO_testMode)         # 1: Test Mode, PRBS7 output, 0: normal Mode
         ETROC1_SinglePixelReg1.set_OE_DMRO(1)                           # 1: Enable DMRO output, 0: Disable DMRO output
 
         ETROC1_SinglePixelReg1.set_Dataout_AmplSel(7)                   # Set CML driver output strength, from 0 to 7
         ETROC1_SinglePixelReg1.set_Dataout_disBIAS(0)                   # 1: Disable CML driver bias current, 0: Enable bias current
 
-        ETROC1_SinglePixelReg1.set_Clk1G28_enableRx(0)                  # 1: Enable 1.28G clock input eRx, 0: Disable 1.28G clock input eRx
-        ETROC1_SinglePixelReg1.set_QInj_enableRx(0)                     # 1: Enable QInj clock input eRx, 0: Disable QInj clock input eRx
+        ETROC1_SinglePixelReg1.set_Clk1G28_enableRx(1)                  # 1: Enable 1.28G clock input eRx, 0: Disable 1.28G clock input eRx
+        ETROC1_SinglePixelReg1.set_QInj_enableRx(1)                     # 1: Enable QInj clock input eRx, 0: Disable QInj clock input eRx
 
         Enable_FPGA_Descramblber(Enable_FPGA_Descrambler)               # 1: Enable FPGA Descrambler 0: Disable FPGA Descrambler
         reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
@@ -245,6 +246,33 @@ def main():
         print("I2C read back data:")
         print(iic_read_val)
 
+        ETROC1_SinglePixelReg1.set_DMRO_resetn(1)                       # DMRO reset, low active
+        reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
+        print("DMRO Resetn is set to high")
+        print(reg_val)
+        for i in range(len(reg_val)):                                   # Write data into I2C register
+            iic_write(1, slave_addr, 0, i, reg_val[i])
+        time.sleep(0.2)
+
+        ETROC1_SinglePixelReg1.set_DMRO_resetn(0)                       # DMRO reset, low active
+        reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
+        print("DMRO Resetn is set to low")
+        print(reg_val)
+        for i in range(len(reg_val)):                                   # Write data into I2C register
+            iic_write(1, slave_addr, 0, i, reg_val[i])
+        time.sleep(0.2)
+
+        ETROC1_SinglePixelReg1.set_DMRO_resetn(1)                       # DMRO reset, low active
+        reg_val = ETROC1_SinglePixelReg1.get_config_vector()            # Get Single Pixel Register default data
+        print("DMRO Resetn is set to high")
+        print(reg_val)
+        for i in range(len(reg_val)):                                   # Write data into I2C register
+            iic_write(1, slave_addr, 0, i, reg_val[i])
+        time.sleep(0.2)
+
+        cmd_interpret.write_pulse_reg(0x0002)                           # Reset FPGA GTX
+        time.sleep(2)
+
         # compare I2C write in data with I2C read back data
         if iic_read_val == reg_val:
             print("Wrote into data matches with read back data!")
@@ -256,6 +284,7 @@ def main():
         time.sleep(1)
 
         # Receive DMRO output data and store it to dat file
+
         if Fetch_Data == 1:
             time_stampe = time.strftime('%m-%d_%H-%M-%S',time.localtime(time.time()))
             if Test_Pattern_Output == 1:
@@ -272,10 +301,11 @@ def main():
             with open("./%s/%s/%s"%(todaystr, userdefineddir, filename),'w') as infile:
                 for i in range(len(data_out)):
                     if Test_Pattern_Output == 1:
+                        Sync = (data_out[i] & 0xC0000000) >> 30
                         Bit = (data_out[i] & 0x3ff00000) >> 20
                         VthIN = (data_out[i] & 0x000f0000) >> 16
                         Counter = data_out[i] & 0x0000ffff
-                        infile.write("%3d %2d %5d\n"%(Bit, VthIN, Counter))
+                        infile.write("%3d %2d %5d %1d\n"%(Bit, VthIN, Counter, Sync))
                     else:
                         TDC_data = []
                         for j in range(30):
