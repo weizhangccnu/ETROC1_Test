@@ -398,7 +398,9 @@ def main():
                     iic_read_val += [iic_read(0, slaveB_addr, 1, j-32)]         # I2C slave B read
             print("I2C read back data:")
             print(iic_read_val)
-
+            
+            cmd_interpret.write_pulse_reg(0x0002)                           # Reset FPGA GTX
+            time.sleep(2)
 
             # compare I2C write in data with I2C read back data
             if iic_read_val == reg_val:
